@@ -8,6 +8,14 @@ public class PlayerController : MonoBehaviour
     //player properties
     public float walkSpeed = 10f;
     public float gravity = 20f;
+    public float jumpSpeed = 15f;
+    
+    //player state
+    public bool isJumping;
+
+    //input flags
+    private bool _startJump;
+    private bool _releaseJump;
 
     private Vector2 _input;
     private Vector2 _moveDirection;
@@ -24,14 +32,52 @@ public class PlayerController : MonoBehaviour
     {
         _moveDirection.x = _input.x;
         _moveDirection.x *= walkSpeed;
+        
+        //On the ground
+        if (_characterController.below)
+        {
+            _moveDirection.y = 0f;
+            isJumping = false;
+            
+            if (_startJump)
+            {
+                _startJump = false;
+                _moveDirection.y = jumpSpeed;
+                isJumping = true;
+                _characterController.DisableGroundCheck();
+            }
+        }
+        else // In the air
+        {
+            if (_releaseJump)
+            {
+                _releaseJump = false;
 
-        _moveDirection.y -= gravity * Time.deltaTime;
+                if (_moveDirection.y > 0)
+                {
+                    _moveDirection.y *= 0.5f;
+                }
 
+            }
+            _moveDirection.y -= gravity * Time.deltaTime;
+        }
+        
         _characterController.Move(_moveDirection * Time.deltaTime);
     }
 
     public void OnMovement(InputAction.CallbackContext context)
     {
         _input = context.ReadValue<Vector2>();
+    }
+    public void OnJump(InputAction.CallbackContext context)
+    {
+        if (context.started)
+        {
+            _startJump = true;
+        }
+        else if (context.canceled)
+        {
+            _releaseJump = true;
+        }
     }
 }
