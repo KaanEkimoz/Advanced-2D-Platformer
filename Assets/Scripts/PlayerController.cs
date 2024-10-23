@@ -11,15 +11,20 @@ public class PlayerController : MonoBehaviour
     public float jumpSpeed = 15f;
     public float doubleJumpSpeed;
     public float tripleJumpSpeed;
+    public float wallJumpXSpeed;
+    public float wallJumpYSpeed;
 
     //player ability toggles
     public bool canDoubleJump;
     public bool canTripleJump;
+    public bool canWallJump;
+    public bool canJumpAfterWallJump;
 
     //player state
     public bool isJumping;
     public bool isDoubleJumping;
     public bool isTripleJumping;
+    public bool isWallJumping;
 
     //input flags
     private bool _startJump;
@@ -35,13 +40,16 @@ public class PlayerController : MonoBehaviour
     }
     void Update()
     {
-        _moveDirection.x = _input.x;
-        _moveDirection.x *= walkSpeed;
+        if(!isWallJumping)
+        {
+            _moveDirection.x = _input.x;
+            _moveDirection.x *= walkSpeed;
 
-        if (_moveDirection.x < 0)
-            transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-        else if (_moveDirection.x > 0)
-            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+            if (_moveDirection.x < 0)
+                transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            else if (_moveDirection.x > 0)
+                transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+        }
 
         //On the ground
         if (_characterController.below)
@@ -88,11 +96,38 @@ public class PlayerController : MonoBehaviour
                         isDoubleJumping = true;
                     }
                 }
+                //wall jump
+                if (canWallJump && (_characterController.left || _characterController.right))
+                {
+                    if (_moveDirection.x <= 0 && _characterController.left)
+                    {
+                        _moveDirection.x = wallJumpXSpeed;
+                        _moveDirection.y = wallJumpYSpeed;
+                        transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+                    }
+                    else if (_moveDirection.x >= 0 && _characterController.right)
+                    {
+                        _moveDirection.x = -wallJumpXSpeed;
+                        _moveDirection.y = wallJumpYSpeed;
+                        transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+                    }
 
-                _startJump = false;
+                    //isWallJumping = true;
+
+                    StartCoroutine("WallJumpWaiter");
+
+                    if (canJumpAfterWallJump)
+                    {
+                        isDoubleJumping = false;
+                        isTripleJumping = false;
+                    }
+
+                    _startJump = false;
+                }
+            
             }
 
-            GravityCalculations();
+                GravityCalculations();
         }
 
         _characterController.Move(_moveDirection * Time.deltaTime);
@@ -124,6 +159,13 @@ public class PlayerController : MonoBehaviour
             _releaseJump = true;
             _startJump = false;
         }
+    }
+    //coroutines
+    IEnumerator WallJumpWaiter()
+    {
+        isWallJumping = true;
+        yield return new WaitForSeconds(0.4f);
+        isWallJumping = false;
     }
 }
 
