@@ -9,9 +9,17 @@ public class PlayerController : MonoBehaviour
     public float walkSpeed = 10f;
     public float gravity = 20f;
     public float jumpSpeed = 15f;
-    
+    public float doubleJumpSpeed;
+    public float tripleJumpSpeed;
+
+    //player ability toggles
+    public bool canDoubleJump;
+    public bool canTripleJump;
+
     //player state
     public bool isJumping;
+    public bool isDoubleJumping;
+    public bool isTripleJumping;
 
     //input flags
     private bool _startJump;
@@ -20,14 +28,11 @@ public class PlayerController : MonoBehaviour
     private Vector2 _input;
     private Vector2 _moveDirection;
     private CharacterController2D _characterController;
-
-    // Start is called before the first frame update
+    
     void Start()
     {
         _characterController = gameObject.GetComponent<CharacterController2D>();
     }
-
-    // Update is called once per frame
     void Update()
     {
         _moveDirection.x = _input.x;
@@ -43,7 +48,9 @@ public class PlayerController : MonoBehaviour
         {
             _moveDirection.y = 0f;
             isJumping = false;
-            
+            isDoubleJumping = false;
+            isTripleJumping = false;
+
             if (_startJump)
             {
                 _startJump = false;
@@ -59,14 +66,35 @@ public class PlayerController : MonoBehaviour
                 _releaseJump = false;
 
                 if (_moveDirection.y > 0)
-                {
                     _moveDirection.y *= 0.5f;
+            }
+
+            // double and triple jump
+            if (_startJump)
+            {
+                if (canTripleJump && !_characterController.left && !_characterController.right)
+                {
+                    if (isDoubleJumping && !isTripleJumping)
+                    {
+                        _moveDirection.y = tripleJumpSpeed;
+                        isTripleJumping = true;
+                    }
+                }
+                if (canDoubleJump && !_characterController.left && !_characterController.right)
+                {
+                    if (!isDoubleJumping)
+                    {
+                        _moveDirection.y = doubleJumpSpeed;
+                        isDoubleJumping = true;
+                    }
                 }
 
+                _startJump = false;
             }
+
             GravityCalculations();
         }
-        
+
         _characterController.Move(_moveDirection * Time.deltaTime);
     }
     void GravityCalculations()
@@ -98,3 +126,4 @@ public class PlayerController : MonoBehaviour
         }
     }
 }
+
