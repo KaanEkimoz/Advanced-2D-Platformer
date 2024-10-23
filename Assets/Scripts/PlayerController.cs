@@ -32,7 +32,12 @@ public class PlayerController : MonoBehaviour
     {
         _moveDirection.x = _input.x;
         _moveDirection.x *= walkSpeed;
-        
+
+        if (_moveDirection.x < 0)
+            transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+        else if (_moveDirection.x > 0)
+            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+
         //On the ground
         if (_characterController.below)
         {
@@ -59,12 +64,22 @@ public class PlayerController : MonoBehaviour
                 }
 
             }
-            _moveDirection.y -= gravity * Time.deltaTime;
+            GravityCalculations();
         }
         
         _characterController.Move(_moveDirection * Time.deltaTime);
     }
+    void GravityCalculations()
+    {
+        if (_moveDirection.y > 0f && _characterController.above)
+        {
+            _moveDirection.y = 0f;
+        }
 
+        _moveDirection.y -= gravity * Time.deltaTime;
+    }
+
+    //Input Methods
     public void OnMovement(InputAction.CallbackContext context)
     {
         _input = context.ReadValue<Vector2>();
@@ -74,10 +89,12 @@ public class PlayerController : MonoBehaviour
         if (context.started)
         {
             _startJump = true;
+            _releaseJump = false;
         }
         else if (context.canceled)
         {
             _releaseJump = true;
+            _startJump = false;
         }
     }
 }
