@@ -27,12 +27,14 @@ public class CharacterController2D : MonoBehaviour
     private bool _disableGroundCheck;
     public GroundType groundType;
     public bool hitGroundThisFrame;
+    public bool hitWallThisFrame;
     
     //TODO: Change to private
     public Vector2 _slopeNormal;
     public float _slopeAngle;
     
     private bool _inAirLastFrame;
+    private bool _noSideCollisionLastFrame;
 
     void Start()
     {
@@ -42,6 +44,9 @@ public class CharacterController2D : MonoBehaviour
     void Update()
     {
         _inAirLastFrame = !below;
+
+        _noSideCollisionLastFrame = (!right && !left);
+
         _lastPosition = _rigidbody.position;
         
         if (_slopeAngle != 0 && below == true)

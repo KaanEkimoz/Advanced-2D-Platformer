@@ -780,7 +780,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.481511, y: -2.54246, z: -10}
+  m_LocalPosition: {x: 6.48149, y: -2.54242, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2378,14 +2378,20 @@ MonoBehaviour:
   tripleJumpSpeed: 10
   wallJumpXSpeed: 20
   wallJumpYSpeed: 20
+  wallRunAmount: 12
+  wallSlideAmount: 0
   canDoubleJump: 1
   canTripleJump: 1
-  canWallJump: 1
+  canWallJump: 0
   canJumpAfterWallJump: 0
+  canWallRun: 0
+  canMultipleWallRun: 0
+  canWallSlide: 1
   isJumping: 0
   isDoubleJumping: 0
   isTripleJumping: 0
   isWallJumping: 0
+  isWallRunning: 0
 --- !u!114 &1589431692
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2410,6 +2416,7 @@ MonoBehaviour:
   downForceAdjustment: 1.2
   groundType: 0
   hitGroundThisFrame: 0
+  hitWallThisFrame: 0
   _slopeNormal: {x: 0, y: 0}
   _slopeAngle: 0
 --- !u!1 &1603410028

@@ -13,18 +13,26 @@ public class PlayerController : MonoBehaviour
     public float tripleJumpSpeed;
     public float wallJumpXSpeed;
     public float wallJumpYSpeed;
+    public float wallRunAmount = 8f;
+    
+    [SerializeField] [Range(0f, 1f)] [Tooltip("Factor to multiply gravity with")]
+    public float wallSlideAmount = 0.1f;
 
     //player ability toggles
     public bool canDoubleJump;
     public bool canTripleJump;
     public bool canWallJump;
     public bool canJumpAfterWallJump;
+    public bool canWallRun;
+    public bool canMultipleWallRun;
+    public bool canWallSlide;
 
     //player state
     public bool isJumping;
     public bool isDoubleJumping;
     public bool isTripleJumping;
     public bool isWallJumping;
+    public bool isWallRunning;
 
     //input flags
     private bool _startJump;
@@ -33,7 +41,9 @@ public class PlayerController : MonoBehaviour
     private Vector2 _input;
     private Vector2 _moveDirection;
     private CharacterController2D _characterController;
-    
+
+    private bool ableToWallRun = true;
+
     void Start()
     {
         _characterController = gameObject.GetComponent<CharacterController2D>();
@@ -55,9 +65,12 @@ public class PlayerController : MonoBehaviour
         if (_characterController.below)
         {
             _moveDirection.y = 0f;
+
+            //clear flags for in air abilities
             isJumping = false;
             isDoubleJumping = false;
             isTripleJumping = false;
+            isWallJumping = false;
 
             if (_startJump)
             {
@@ -65,6 +78,7 @@ public class PlayerController : MonoBehaviour
                 _moveDirection.y = jumpSpeed;
                 isJumping = true;
                 _characterController.DisableGroundCheck();
+                ableToWallRun = true;
             }
         }
         else // In the air
@@ -126,8 +140,36 @@ public class PlayerController : MonoBehaviour
                 }
             
             }
+            //wall running
+            if (canWallRun && (_characterController.left || _characterController.right))
+            {
+                if (_input.y > 0 && ableToWallRun)
+                {
+                    _moveDirection.y = wallRunAmount;
 
-                GravityCalculations();
+                    if (_characterController.left)
+                    {
+                        transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+                    }
+                    else if (_characterController.right)
+                    {
+                        transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+                    }
+
+                    StartCoroutine("WallRunWaiter");
+                }
+            }
+            else
+            {
+                if (canMultipleWallRun)
+                {
+                    StopCoroutine("WallRunWaiter");
+                    ableToWallRun = true;
+                    isWallRunning = false;
+                }
+            }
+
+            GravityCalculations();
         }
 
         _characterController.Move(_moveDirection * Time.deltaTime);
@@ -137,6 +179,21 @@ public class PlayerController : MonoBehaviour
         if (_moveDirection.y > 0f && _characterController.above)
         {
             _moveDirection.y = 0f;
+        }
+        if (canWallSlide && (_characterController.left || _characterController.right))
+        {
+            if(_characterController.hitWallThisFrame)
+                _moveDirection.y = 0;
+
+            if(_moveDirection.y <= 0)
+                _moveDirection.y -= gravity * wallSlideAmount * Time.deltaTime;
+            else
+                _moveDirection.y -= gravity * Time.deltaTime;
+
+        }
+        else
+        {
+            _moveDirection.y -= gravity * Time.deltaTime;
         }
 
         _moveDirection.y -= gravity * Time.deltaTime;
@@ -166,6 +223,14 @@ public class PlayerController : MonoBehaviour
         isWallJumping = true;
         yield return new WaitForSeconds(0.4f);
         isWallJumping = false;
+    }
+    IEnumerator WallRunWaiter()
+    {
+        isWallRunning = true;
+        yield return new WaitForSeconds(0.5f);
+        isWallRunning = false;
+        if (!isWallJumping)
+            ableToWallRun = false;
     }
 }
 
