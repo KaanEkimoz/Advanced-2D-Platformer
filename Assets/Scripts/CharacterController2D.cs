@@ -65,16 +65,19 @@ public class CharacterController2D : MonoBehaviour
         _moveAmount = Vector2.zero;
         
         if (!_disableGroundCheck)
-        {
             CheckGrounded();
-        }
-        
+
         CheckOtherCollisions();
 
         if (below && _inAirLastFrame)
             hitGroundThisFrame = true;
         else
             hitGroundThisFrame = false;
+
+        if((right || left) && _noSideCollisionLastFrame)
+            hitWallThisFrame = true;
+        else
+            hitWallThisFrame = false;
 
     }
 
@@ -98,8 +101,6 @@ public class CharacterController2D : MonoBehaviour
                 below = false;
             else
                 below = true;
-
-
         }
         else
         {
@@ -139,68 +140,6 @@ public class CharacterController2D : MonoBehaviour
         else
             above = false;
     }
-    
-    /*private void CheckGrounded()
-    {
-        Vector2 raycastOrigin = _rigidbody.position - new Vector2(0, _capsuleCollider.size.y * 0.5f);
-
-        _raycastPosition[0] = raycastOrigin + (Vector2.left * _capsuleCollider.size.x * 0.25f + Vector2.up * 0.1f);
-        _raycastPosition[1] = raycastOrigin;
-        _raycastPosition[2] = raycastOrigin + (Vector2.right * _capsuleCollider.size.x * 0.25f + Vector2.up * 0.1f);
-
-        DrawDebugRays(Vector2.down, Color.green);
-
-        int numberOfGroundHits = 0;
-
-        for (int i = 0; i < _raycastPosition.Length; i++)
-        {
-            RaycastHit2D hit = Physics2D.Raycast(_raycastPosition[i], Vector2.down, raycastDistance, layerMask);
-
-            if (hit.collider)
-            {
-                _raycastHits[i] = hit;
-                numberOfGroundHits++;
-            }
-        }
-
-        if (numberOfGroundHits > 0)
-        {
-            if (_raycastHits[1].collider)
-            {
-                groundType = DetectGroundType(_raycastHits[1].collider);
-                _slopeNormal = _raycastHits[1].normal;
-                _slopeAngle = Vector2.SignedAngle(_slopeNormal, Vector2.up);
-            }
-            else
-            {
-                for (int i = 0; i  < _raycastHits.Length; i++)
-                {
-                    if (_raycastHits[i].collider)
-                    {
-                        groundType = DetectGroundType(_raycastHits[i].collider);
-                        _slopeNormal = _raycastHits[i].normal;
-                        _slopeAngle = Vector2.SignedAngle(_slopeNormal, Vector2.up);
-                    }
-                }
-            }
-            
-            if (_slopeAngle > slopeAngleLimit || _slopeAngle < -slopeAngleLimit)
-            {
-                below = false;
-            }
-            else
-            {
-                below = true;
-            }
-        }
-        else
-        {
-            groundType = GroundType.None;
-            below = false;
-        }
-
-    }*/
-
     private void DrawDebugRays(Vector2 direction, Color color)
     {
         for (int i = 0; i < _raycastPosition.Length; i++)
@@ -208,14 +147,12 @@ public class CharacterController2D : MonoBehaviour
             Debug.DrawRay(_raycastPosition[i], direction * raycastDistance, color);
         }
     }
-    
     public void DisableGroundCheck()
     {
         below = false;
         _disableGroundCheck = true;
         StartCoroutine("EnableGroundCheck");
     }
-
     IEnumerator EnableGroundCheck()
     {
         yield return new WaitForSeconds(0.1f);

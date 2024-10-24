@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -9,10 +8,10 @@ public class PlayerController : MonoBehaviour
     public float walkSpeed = 10f;
     public float gravity = 20f;
     public float jumpSpeed = 15f;
-    public float doubleJumpSpeed;
-    public float tripleJumpSpeed;
-    public float wallJumpXSpeed;
-    public float wallJumpYSpeed;
+    public float doubleJumpSpeed = 10f;
+    public float tripleJumpSpeed = 10f;
+    public float wallJumpXSpeed = 15f;
+    public float wallJumpYSpeed = 15f;
     public float wallRunAmount = 8f;
     
     [SerializeField] [Range(0f, 1f)] [Tooltip("Factor to multiply gravity with")]
@@ -33,6 +32,8 @@ public class PlayerController : MonoBehaviour
     public bool isTripleJumping;
     public bool isWallJumping;
     public bool isWallRunning;
+    public bool isDucking;
+    public bool isCreeping;
 
     //input flags
     private bool _startJump;
@@ -44,9 +45,17 @@ public class PlayerController : MonoBehaviour
 
     private bool ableToWallRun = true;
 
+    private CapsuleCollider2D _capsuleCollider;
+    private Vector2 _originalColliderSize;
+    //TODO: remove later when not needed
+    private SpriteRenderer _spriteRenderer;
+
     void Start()
     {
         _characterController = gameObject.GetComponent<CharacterController2D>();
+        _capsuleCollider = gameObject.GetComponent<CapsuleCollider2D>();
+        _spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        _originalColliderSize = _capsuleCollider.size;
     }
     void Update()
     {
@@ -72,6 +81,7 @@ public class PlayerController : MonoBehaviour
             isTripleJumping = false;
             isWallJumping = false;
 
+            //jumping
             if (_startJump)
             {
                 _startJump = false;
@@ -80,8 +90,33 @@ public class PlayerController : MonoBehaviour
                 _characterController.DisableGroundCheck();
                 ableToWallRun = true;
             }
+            //ducking and creeping
+            if (_input.y < 0f)
+            {
+                if (!isDucking && !isCreeping)
+                {
+                    _capsuleCollider.size = new Vector2(_capsuleCollider.size.x, _capsuleCollider.size.y / 2);
+                    transform.position = new Vector2(transform.position.x, transform.position.y - (_originalColliderSize.y / 4));
+                    isDucking = true;
+                    _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp_crouching");
+                }
+
+            }
+            else
+            {
+                if (isDucking || isCreeping)
+                {
+                    _capsuleCollider.size = _originalColliderSize;
+                    transform.position = new Vector2(transform.position.x, transform.position.y + (_originalColliderSize.y / 4));
+                    _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
+                    isDucking = false;
+                    isCreeping = false;
+
+                }
+            }
         }
-        else // In the air
+        // In the air
+        else
         {
             if (_releaseJump)
             {
@@ -91,10 +126,10 @@ public class PlayerController : MonoBehaviour
                     _moveDirection.y *= 0.5f;
             }
 
-            // double and triple jump
             if (_startJump)
             {
-                if (canTripleJump && !_characterController.left && !_characterController.right)
+                // triple jump
+                if (canTripleJump && (!_characterController.left && !_characterController.right))
                 {
                     if (isDoubleJumping && !isTripleJumping)
                     {
@@ -102,7 +137,8 @@ public class PlayerController : MonoBehaviour
                         isTripleJumping = true;
                     }
                 }
-                if (canDoubleJump && !_characterController.left && !_characterController.right)
+                // double jump
+                if (canDoubleJump && (!_characterController.left && !_characterController.right))
                 {
                     if (!isDoubleJumping)
                     {
@@ -126,8 +162,6 @@ public class PlayerController : MonoBehaviour
                         transform.rotation = Quaternion.Euler(0f, 180f, 0f);
                     }
 
-                    //isWallJumping = true;
-
                     StartCoroutine("WallJumpWaiter");
 
                     if (canJumpAfterWallJump)
@@ -135,11 +169,10 @@ public class PlayerController : MonoBehaviour
                         isDoubleJumping = false;
                         isTripleJumping = false;
                     }
-
                     _startJump = false;
                 }
-            
             }
+
             //wall running
             if (canWallRun && (_characterController.left || _characterController.right))
             {
@@ -148,13 +181,9 @@ public class PlayerController : MonoBehaviour
                     _moveDirection.y = wallRunAmount;
 
                     if (_characterController.left)
-                    {
                         transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-                    }
                     else if (_characterController.right)
-                    {
                         transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-                    }
 
                     StartCoroutine("WallRunWaiter");
                 }
@@ -168,10 +197,8 @@ public class PlayerController : MonoBehaviour
                     isWallRunning = false;
                 }
             }
-
             GravityCalculations();
         }
-
         _characterController.Move(_moveDirection * Time.deltaTime);
     }
     void GravityCalculations()
@@ -186,7 +213,7 @@ public class PlayerController : MonoBehaviour
                 _moveDirection.y = 0;
 
             if(_moveDirection.y <= 0)
-                _moveDirection.y -= gravity * wallSlideAmount * Time.deltaTime;
+                _moveDirection.y -= (gravity * wallSlideAmount) * Time.deltaTime;
             else
                 _moveDirection.y -= gravity * Time.deltaTime;
 
@@ -217,6 +244,7 @@ public class PlayerController : MonoBehaviour
             _startJump = false;
         }
     }
+
     //coroutines
     IEnumerator WallJumpWaiter()
     {
