@@ -6,6 +6,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Walk")]
     public float walkSpeed = 10f;
+    public float creepSpeed = 5f;
     [Space]
     [Header("Jump")]
     [SerializeField] private bool canJump = true;
@@ -74,8 +75,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _dashTimer;
 
     [Header("Ground Slam")]
-    public float groundSlamSpeed = 60f;
     [SerializeField] private bool canGroundSlam;
+    public float groundSlamSpeed = 60f;
     [SerializeField] private bool isGroundSlamming;
 
     [Header("Gravity")]
@@ -90,26 +91,27 @@ public class PlayerController : MonoBehaviour
     //Input
     private bool _startJump;
     private bool _releaseJump;
-    private bool _startGlide;
+    private bool _startGlide = true;
     private Vector2 _input;
     private Vector2 _moveDirection;
     private bool _facingRight;
 
     private void Start()
     {
-        GetComponents();
-        _originalColliderSize = _capsuleCollider.size;
-    }
-    private void GetComponents()
-    {
         _characterController = gameObject.GetComponent<CharacterController2D>();
         _capsuleCollider = gameObject.GetComponent<CapsuleCollider2D>();
         _spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        _originalColliderSize = _capsuleCollider.size;
     }
-    private void Update()
+
+    private void RunDashTimer()
     {
         if (_dashTimer > 0)
             _dashTimer -= Time.deltaTime;
+    }
+    private void Update()
+    {
+        RunDashTimer();
 
         if (!isWallJumping)
         {
@@ -136,77 +138,15 @@ public class PlayerController : MonoBehaviour
 
             _moveDirection.y = 0;
         }
+        else if(isCreeping)
+            _moveDirection.x *= creepSpeed;
         else
             _moveDirection.x *= walkSpeed;
 
         //On the ground
         if (_characterController.below)
         {
-            _moveDirection.y = 0f;
-
-            //clear flags for in air abilities
-            isJumping = false;
-            isDoubleJumping = false;
-            isTripleJumping = false;
-            isWallJumping = false;
-            _currentGlideTime = glideTime;
-            isGroundSlamming = false;
-
-            //jumping
-            if (_startJump)
-            {
-                _startJump = false;
-
-                if (canPowerJump && isDucking &&
-                    _characterController.groundType != GroundType.OneWayPlatform && (_powerJumpTimer > powerJumpWaitTime))
-                {
-                    _moveDirection.y = powerJumpSpeed;
-                    StartCoroutine("PowerJumpWaiter");
-                }
-                else
-                    _moveDirection.y = jumpSpeed;
-
-                isJumping = true;
-                _characterController.DisableGroundCheck();
-                ableToWallRun = true;
-            }
-            //ducking and creeping
-            if (_input.y < 0f)
-            {
-                if (!isDucking && !isCreeping)
-                {
-                    _capsuleCollider.size = new Vector2(_capsuleCollider.size.x, _capsuleCollider.size.y / 2);
-                    transform.position = new Vector2(transform.position.x, transform.position.y - (_originalColliderSize.y / 4));
-                    isDucking = true;
-                    _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp_crouching");
-                }
-                _powerJumpTimer += Time.deltaTime;
-            }
-            else
-            {
-                if (isDucking || isCreeping)
-                {
-                    RaycastHit2D hitCeiling = Physics2D.CapsuleCast(_capsuleCollider.bounds.center,
-                         transform.localScale, CapsuleDirection2D.Vertical, 0f, Vector2.up,
-                         _originalColliderSize.y / 2, _characterController.layerMask);
-
-                    if (!hitCeiling.collider)
-                    {
-                        _capsuleCollider.size = _originalColliderSize;
-                        transform.position = new Vector2(transform.position.x, transform.position.y + (_originalColliderSize.y / 4));
-                        _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
-                        isDucking = false;
-                        isCreeping = false;
-                    }
-                }
-            }
-            if (isDucking && _moveDirection.x != 0)
-            {
-                isCreeping = true;
-                _powerJumpTimer = 0f;
-            }
-            else
-                isCreeping = false;
+            OnTheGround();
         }
         // In the air
         else
@@ -295,42 +235,114 @@ public class PlayerController : MonoBehaviour
                     isWallRunning = false;
                 }
             }
-            GravityCalculations();
+            CalculateGravity();
 
             //canGlideAfterWallContact
             if ((_characterController.left || _characterController.right) && canWallRun)
             {
                 if (canGlideAfterWallContact)
-                {
                     _currentGlideTime = glideTime;
-                }
                 else
-                {
                     _currentGlideTime = 0;
-                }
             }
         }
         _characterController.Move(_moveDirection * Time.deltaTime);
+    }
+    private void OnTheGround()
+    {
+        ResetVerticalMovement();
+
+        ResetInAirAbilities();
+
+
+        //jumping
+        if (_startJump)
+        {
+            _startJump = false;
+
+            if (canPowerJump && isDucking &&
+                _characterController.groundType != GroundType.OneWayPlatform && (_powerJumpTimer > powerJumpWaitTime))
+            {
+                _moveDirection.y = powerJumpSpeed;
+                StartCoroutine("PowerJumpWaiter");
+            }
+            else
+                _moveDirection.y = jumpSpeed;
+
+            isJumping = true;
+            _characterController.DisableGroundCheck();
+            ableToWallRun = true;
+        }
+        //ducking and creeping
+        if (_input.y < 0f)
+        {
+            if (!isDucking && !isCreeping)
+            {
+                _capsuleCollider.size = new Vector2(_capsuleCollider.size.x, _capsuleCollider.size.y / 2);
+                transform.position = new Vector2(transform.position.x, transform.position.y - (_originalColliderSize.y / 4));
+                isDucking = true;
+                _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp_crouching");
+            }
+            _powerJumpTimer += Time.deltaTime;
+        }
+        else
+        {
+            if (isDucking || isCreeping)
+            {
+                RaycastHit2D hitCeiling = Physics2D.CapsuleCast(_capsuleCollider.bounds.center,
+                     transform.localScale, CapsuleDirection2D.Vertical, 0f, Vector2.up,
+                     _originalColliderSize.y / 2, _characterController.layerMask);
+
+                if (!hitCeiling.collider)
+                {
+                    _capsuleCollider.size = _originalColliderSize;
+                    transform.position = new Vector2(transform.position.x, transform.position.y + (_originalColliderSize.y / 4));
+                    _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
+                    isDucking = false;
+                    isCreeping = false;
+                }
+            }
+        }
+        if (isDucking && _moveDirection.x != 0)
+        {
+            isCreeping = true;
+            _powerJumpTimer = 0f;
+        }
+        else
+            isCreeping = false;
     }
     private bool IsCharacterOnTheGround()
     {
         return _characterController.below;
     }
-    void GravityCalculations()
+    private void ResetVerticalMovement()
+    {
+        _moveDirection.y = 0f;
+    }
+    private void ResetInAirAbilities()
+    {
+        //jumps
+        isJumping = false;
+        isDoubleJumping = false;
+        isTripleJumping = false;
+        isWallJumping = false;
+
+        //abilities
+        isGroundSlamming = false;
+        _startGlide = true;
+        _currentGlideTime = glideTime;
+    }
+    void CalculateGravity()
     {
         //detects if something above player
         if (_moveDirection.y > 0f && _characterController.above)
-        {
-            _moveDirection.y = 0f;
-        }
+            ResetVerticalMovement();
 
         //apply wall slide adjustment
         if (canWallSlide && (_characterController.left || _characterController.right))
         {
             if (_characterController.hitWallThisFrame)
-            {
-                _moveDirection.y = 0;
-            }
+                ResetVerticalMovement();
 
 
             if (_moveDirection.y <= 0)
