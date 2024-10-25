@@ -32,6 +32,7 @@ public class PlayerController : MonoBehaviour
     public bool isTripleJumping;
     public bool isWallJumping;
     public bool isWallRunning;
+    public bool isWallSliding;
     public bool isDucking;
     public bool isCreeping;
 
@@ -106,18 +107,31 @@ public class PlayerController : MonoBehaviour
             {
                 if (isDucking || isCreeping)
                 {
-                    _capsuleCollider.size = _originalColliderSize;
-                    transform.position = new Vector2(transform.position.x, transform.position.y + (_originalColliderSize.y / 4));
-                    _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
-                    isDucking = false;
-                    isCreeping = false;
+                    RaycastHit2D hitCeiling = Physics2D.CapsuleCast(_capsuleCollider.bounds.center,
+                         transform.localScale, CapsuleDirection2D.Vertical, 0f, Vector2.up,
+                         _originalColliderSize.y / 2, _characterController.layerMask);
 
+                    if (!hitCeiling.collider)
+                    {
+                        _capsuleCollider.size = _originalColliderSize;
+                        transform.position = new Vector2(transform.position.x, transform.position.y + (_originalColliderSize.y / 4));
+                        _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
+                        isDucking = false;
+                        isCreeping = false;
+                    }
                 }
             }
+            if (isDucking && _moveDirection.x != 0)
+                isCreeping = true;
+            else
+                isCreeping = false;
         }
         // In the air
         else
         {
+            if ((isDucking || isCreeping) && _moveDirection.y > 0)
+                StartCoroutine("ClearDuckingState");
+
             if (_releaseJump)
             {
                 _releaseJump = false;
@@ -259,6 +273,22 @@ public class PlayerController : MonoBehaviour
         isWallRunning = false;
         if (!isWallJumping)
             ableToWallRun = false;
+    }
+    IEnumerator ClearDuckingState()
+    {
+        yield return new WaitForSeconds(0.05f);
+
+        RaycastHit2D hitCeiling = Physics2D.CapsuleCast(_capsuleCollider.bounds.center, transform.localScale,
+            CapsuleDirection2D.Vertical, 0f, Vector2.up, _originalColliderSize.y / 2, _characterController.layerMask);
+
+        if (!hitCeiling.collider)
+        {
+            _capsuleCollider.size = _originalColliderSize;
+            //transform.position = new Vector2(transform.position.x, transform.position.y + (_originalColliderSize.y / 4));
+            _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
+            isDucking = false;
+            isCreeping = false;
+        }
     }
 }
 
