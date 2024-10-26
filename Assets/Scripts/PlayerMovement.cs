@@ -134,6 +134,18 @@ public class PlayerMovement : MonoBehaviour
         else
             isCrouchWalking = false;
     }
+    private void ResetVerticalMovement()
+    {
+        _movementVector.y = 0f;
+    }
+    private void ResetJumpStates()
+    {
+        //jumps
+        isJumping = false;
+        isDoubleJumping = false;
+        isTripleJumping = false;
+        isWallJumping = false;
+    }
     private void Jump()
     {
         _movementVector.y = jumpSpeed;
@@ -169,7 +181,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void OnTheAir()
     {
-        if ((isCrouching || isCrouchWalking) && _movementVector.y > 0)
+        if (isCrouching && _movementVector.y > 0)
             StartCoroutine("ClearCrouchState");
 
         if (PlayerInputHandler.Instance.JumpButtonReleased && _movementVector.y > 0)
@@ -179,16 +191,12 @@ public class PlayerMovement : MonoBehaviour
         {
             //Triple Jump
             if (canTripleJump && !HasSideCollisions())
-            {
                 if (isDoubleJumping && !isTripleJumping)
                     TripleJump();
-            }
             //Double Jump
             if (canDoubleJump && !HasSideCollisions())
-            {
                 if (!isDoubleJumping)
                     DoubleJump();
-            }
 
             //Wall Jump
             if (canWallJump && HasSideCollisions())
@@ -246,6 +254,16 @@ public class PlayerMovement : MonoBehaviour
 
         AdjustGravity();
     }
+    private void DoubleJump()
+    {
+        _movementVector.y = doubleJumpSpeed;
+        isDoubleJumping = true;
+    }
+    private void TripleJump()
+    {
+        _movementVector.y = tripleJumpSpeed;
+        isTripleJumping = true;
+    }
     private void WallJump()
     {
         if (_movementVector.x <= 0 && _characterController.left)
@@ -263,28 +281,6 @@ public class PlayerMovement : MonoBehaviour
     private bool HasSideCollisions()
     {
         return _characterController.right || _characterController.left;
-    }
-    private void DoubleJump()
-    {
-        _movementVector.y = doubleJumpSpeed;
-        isDoubleJumping = true;
-    }
-    private void TripleJump()
-    {
-        _movementVector.y = tripleJumpSpeed;
-        isTripleJumping = true;
-    }
-    private void ResetVerticalMovement()
-    {
-        _movementVector.y = 0f;
-    }
-    private void ResetJumpStates()
-    {
-        //jumps
-        isJumping = false;
-        isDoubleJumping = false;
-        isTripleJumping = false;
-        isWallJumping = false;
     }
     void AdjustGravity()
     {
