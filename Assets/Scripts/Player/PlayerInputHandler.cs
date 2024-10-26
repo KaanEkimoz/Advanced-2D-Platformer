@@ -24,6 +24,7 @@ public class PlayerInputHandler : MonoBehaviour
     //Jump
     public bool JumpButtonPressed;
     public bool JumpButtonReleased;
+    private bool _isJumpButtonPressedThisFrame;
 
     //Dash
     private bool DashButtonPressed;
@@ -31,6 +32,15 @@ public class PlayerInputHandler : MonoBehaviour
     //Attack
     private bool AttackButtonPressed;
 
+    public bool IsJumpButtonPressedThisFrame()
+    {
+        if (_isJumpButtonPressedThisFrame)
+        {
+            _isJumpButtonPressedThisFrame = false;
+            return true;
+        }
+        return false;
+    }
     public bool IsPlayerPressingDownMovementButton()
     {
         if(GetMovementInput().y < 0)
@@ -57,6 +67,10 @@ public class PlayerInputHandler : MonoBehaviour
     }
     public void OnJump(InputAction.CallbackContext context)
     {
+        if (context.phase == InputActionPhase.Started)
+        {
+            _isJumpButtonPressedThisFrame = true;
+        }
         if (context.started)
         {
             JumpButtonPressed = true;
@@ -66,7 +80,7 @@ public class PlayerInputHandler : MonoBehaviour
         {
             JumpButtonReleased = true;
             JumpButtonPressed = false;
-        }
+        } 
     }
 
     public void OnDash(InputAction.CallbackContext context)

@@ -24,13 +24,14 @@ public class PlayerAbilities : MonoBehaviour
     [Header("Ground Slam")]
     [SerializeField] private bool canGroundSlam;
     public float groundSlamSpeed = 60f;
-    [SerializeField] private bool isGroundSlamming;
 
 
     //Player States
+    [Space]
+    [SerializeField] private bool isGliding;
     [SerializeField] private bool isPowerJumping;
     [SerializeField] private bool isDashing;
-
+    [SerializeField] private bool isGroundSlamming;
 
     //Glide
     private bool _startGlide = true;

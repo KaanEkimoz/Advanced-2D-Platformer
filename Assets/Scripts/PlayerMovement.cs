@@ -3,8 +3,8 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Walk and Crouch Walk")]
-    public float walkSpeed = 10f;
-    public float crouchWalkSpeed = 5f;
+    [SerializeField] private float walkSpeed = 10f;
+    [SerializeField] private float crouchWalkSpeed = 5f;
     [Space]
     [Header("Jump")]
     [SerializeField] private bool canJump = true;
@@ -21,6 +21,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Wall Jump")]
     [SerializeField] private bool canWallJump = false;
     [SerializeField] private bool canJumpAfterWallJump = false;
+    [SerializeField] private bool autoRotatePlayerAfterWallJump = true;
     [SerializeField] private float wallJumpXSpeed = 15f;
     [SerializeField] private float wallJumpYSpeed = 15f;
     [Space]
@@ -33,8 +34,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool canWallSlide = false;
     [SerializeField] [Range(0f, 1f)] [Tooltip("Factor to multiply gravity with")] 
     private float wallSlideAmount = 0.1f;
+    [Space]
+    [Header("Gravity")]
+    [SerializeField] private float gravity = 20f;
 
     //TO DO: After fully tested the controller make the states private or protected, they are public for only testing purposes
+    [Space]
     [Header("Player State")]
     [SerializeField] private bool isJumping;
     [SerializeField] private bool isDoubleJumping;
@@ -45,9 +50,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool isGliding;
     [SerializeField] private bool isCrouchWalking;
     [SerializeField] private bool isCrouching;
-    [Space]
-    [Header("Gravity")]
-    [SerializeField] private float gravity = 20f;
 
     //Movement
     private Vector2 _movementVector;
@@ -82,7 +84,6 @@ public class PlayerMovement : MonoBehaviour
         else
             OnTheAir();
 
-        AdjustGravity();
         _characterController.Move(_movementVector * Time.deltaTime);
     }
     private void HandleHorizontalMovement()
@@ -114,10 +115,11 @@ public class PlayerMovement : MonoBehaviour
     private void OnTheGround()
     {
         ResetVerticalMovement();
+
         ResetJumpStates();
 
         //Jump
-        if (PlayerInputHandler.Instance.JumpButtonPressed)
+        if (PlayerInputHandler.Instance.IsJumpButtonPressedThisFrame())
             Jump();
 
         //Crouch
@@ -168,40 +170,33 @@ public class PlayerMovement : MonoBehaviour
     private void OnTheAir()
     {
         if ((isCrouching || isCrouchWalking) && _movementVector.y > 0)
-            StartCoroutine("ClearDuckingState");
+            StartCoroutine("ClearCrouchState");
 
         if (PlayerInputHandler.Instance.JumpButtonReleased && _movementVector.y > 0)
             _movementVector.y *= 0.5f;
 
-        if (isJumping)
+        if (PlayerInputHandler.Instance.IsJumpButtonPressedThisFrame())
         {
-            // triple jump
-            if (canTripleJump && (!_characterController.left && !_characterController.right))
+            //Triple Jump
+            if (canTripleJump && !HasSideCollisions())
             {
                 if (isDoubleJumping && !isTripleJumping)
                     TripleJump();
             }
-            // double jump
-            if (canDoubleJump && (!_characterController.left && !_characterController.right))
+            //Double Jump
+            if (canDoubleJump && !HasSideCollisions())
             {
                 if (!isDoubleJumping)
                     DoubleJump();
             }
-            //wall jump
-            if (canWallJump && (_characterController.left || _characterController.right))
+
+            //Wall Jump
+            if (canWallJump && HasSideCollisions())
             {
-                if (_movementVector.x <= 0 && _characterController.left)
-                {
-                    _movementVector.x = wallJumpXSpeed;
-                    _movementVector.y = wallJumpYSpeed;
-                    transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-                }
-                else if (_movementVector.x >= 0 && _characterController.right)
-                {
-                    _movementVector.x = -wallJumpXSpeed;
-                    _movementVector.y = wallJumpYSpeed;
-                    transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-                }
+                WallJump();
+
+                if (autoRotatePlayerAfterWallJump)
+                    AdjustPlayerDirection();
 
                 StartCoroutine("WallJumpWaiter");
 
@@ -213,8 +208,8 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
-        //wall running
-        if (canWallRun && (_characterController.left || _characterController.right))
+        //Wall Run
+        if (canWallRun && HasSideCollisions())
         {
             if (PlayerInputHandler.Instance.GetMovementInput().y > 0 && isJumping)
             {
@@ -236,7 +231,38 @@ public class PlayerMovement : MonoBehaviour
                 isWallRunning = false;
             }
         }
+
+        //Wall Slide
+        if (canWallSlide && HasSideCollisions())
+        {
+            if (_characterController.hitWallThisFrame)
+                ResetVerticalMovement();
+
+            if (_movementVector.y <= 0)
+                isWallSliding = true;
+        }
+        else
+            isWallSliding = false;
+
         AdjustGravity();
+    }
+    private void WallJump()
+    {
+        if (_movementVector.x <= 0 && _characterController.left)
+        {
+            _movementVector.x = wallJumpXSpeed;
+            _movementVector.y = wallJumpYSpeed;
+        }
+        else if (_movementVector.x >= 0 && _characterController.right)
+        {
+            _movementVector.x = -wallJumpXSpeed;
+            _movementVector.y = wallJumpYSpeed;
+        }
+
+    }
+    private bool HasSideCollisions()
+    {
+        return _characterController.right || _characterController.left;
     }
     private void DoubleJump()
     {
@@ -262,65 +288,17 @@ public class PlayerMovement : MonoBehaviour
     }
     void AdjustGravity()
     {
-        //detects if something above player
+        //If Something Above Player Resets Vertical Movement
         if (_movementVector.y > 0f && _characterController.above)
             ResetVerticalMovement();
 
-        //apply wall slide adjustment
-        /* if (canWallSlide && (_characterController.left || _characterController.right))
-         {
-             if (_characterController.hitWallThisFrame)
-                 ResetVerticalMovement();
+        //Wall Slide Gravity Adjustment
+        if (isWallSliding)
+            _movementVector.y -= (gravity * wallSlideAmount) * Time.deltaTime;
+        else if(!isWallSliding)
+            _movementVector.y -= gravity * Time.deltaTime;
 
-
-             if (_targetMoveDirection.y <= 0)
-             {
-                 _targetMoveDirection.y -= (gravity * wallSlideAmount) * Time.deltaTime;
-             }
-             else
-             {
-                 _targetMoveDirection.y -= gravity * Time.deltaTime;
-             }
-
-         }
-         /*else if (canGlide && _input.y > 0f && _moveDirection.y < 0.2f) // glide adjustment
-         {
-             if (_currentGlideTime > 0f)
-             {
-                 isGliding = true;
-
-                 if (_startGlide)
-                 {
-                     _moveDirection.y = 0;
-                     _startGlide = false;
-                 }
-
-                 _moveDirection.y -= glideDescentAmount * Time.deltaTime;
-                 _currentGlideTime -= Time.deltaTime;
-             }
-             else
-             {
-                 isGliding = false;
-                 _moveDirection.y -= gravity * Time.deltaTime;
-             }
-
-         }
-         //else if (canGroundSlam  && !isPowerJumping && _input.y < 0f && _moveDirection.y < 0f) // ground slam
-         else if (isGroundSlamming && !isPowerJumping && _moveDirection.y < 0f)
-         {
-             _moveDirection.y = -groundSlamSpeed;
-         }
-         else if (!isDashing) //regular gravity
-         {
-             _moveDirection.y -= gravity * Time.deltaTime;
-         }/*/
-
-        //regular gravity
-        _movementVector.y -= gravity * Time.deltaTime;
     }
-
-    
-
     #region Coroutines
     IEnumerator WallJumpWaiter()
     {

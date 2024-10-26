@@ -110,7 +110,6 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
         }
 
     }
-    
     private void CheckOtherCollisions()
     {
         //check left

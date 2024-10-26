@@ -780,7 +780,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 6.480962, y: -2.54192, z: -10}
+  m_LocalPosition: {x: 3.74, y: -6.49, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1030,7 +1030,7 @@ Transform:
   m_GameObject: {fileID: 542728164}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 6.48, y: -2.5, z: -10}
+  m_LocalPosition: {x: 3.74, y: -6.49, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2465,7 +2465,7 @@ Transform:
   m_GameObject: {fileID: 1589431685}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6.48, y: -2.5, z: 0}
+  m_LocalPosition: {x: 3.74, y: -6.49, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2486,11 +2486,11 @@ MonoBehaviour:
   walkSpeed: 20
   crouchWalkSpeed: 5
   canJump: 1
-  jumpSpeed: 20
+  jumpSpeed: 30
   canDoubleJump: 1
-  doubleJumpSpeed: 15
+  doubleJumpSpeed: 20
   canTripleJump: 1
-  tripleJumpSpeed: 10
+  tripleJumpSpeed: 15
   canWallJump: 0
   canJumpAfterWallJump: 0
   wallJumpXSpeed: 20
@@ -2529,7 +2529,7 @@ MonoBehaviour:
   raycastDistance: 0.2
   layerMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   slopeAngleLimit: 45
   downForceAdjustment: 1.2
   groundType: 0
