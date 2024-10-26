@@ -2491,15 +2491,17 @@ MonoBehaviour:
   doubleJumpSpeed: 20
   canTripleJump: 1
   tripleJumpSpeed: 15
-  canWallJump: 0
+  canWallJump: 1
   canJumpAfterWallJump: 0
+  autoRotatePlayerAfterWallJump: 1
   wallJumpXSpeed: 20
   wallJumpYSpeed: 20
   canWallRun: 0
   canMultipleWallRun: 0
   wallRunAmount: 12
-  canWallSlide: 1
-  wallSlideAmount: 0
+  canWallSlide: 0
+  wallSlideAmount: 1
+  gravity: 40
   isJumping: 0
   isDoubleJumping: 0
   isTripleJumping: 0
@@ -2509,7 +2511,6 @@ MonoBehaviour:
   isGliding: 0
   isCrouchWalking: 0
   isCrouching: 0
-  gravity: 40
 --- !u!114 &1589431692
 MonoBehaviour:
   m_ObjectHideFlags: 0

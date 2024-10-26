@@ -297,8 +297,8 @@ public class PlayerMovement : MonoBehaviour
             _movementVector.y -= (gravity * wallSlideAmount) * Time.deltaTime;
         else if(!isWallSliding)
             _movementVector.y -= gravity * Time.deltaTime;
-
     }
+
     #region Coroutines
     IEnumerator WallJumpWaiter()
     {
@@ -312,7 +312,7 @@ public class PlayerMovement : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
         isWallRunning = false;
     }
-    IEnumerator ClearCrouchingState()
+    IEnumerator ClearCrouchState()
     {
         yield return new WaitForSeconds(0.05f);
         if (HasUnCrouchSpace())
