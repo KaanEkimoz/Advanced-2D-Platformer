@@ -2190,8 +2190,9 @@ GameObject:
   - component: {fileID: 1589431688}
   - component: {fileID: 1589431687}
   - component: {fileID: 1589431686}
-  - component: {fileID: 1589431692}
   - component: {fileID: 1589431691}
+  - component: {fileID: 1589431692}
+  - component: {fileID: 1589431693}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -2226,8 +2227,8 @@ MonoBehaviour:
   m_ActionEvents:
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1589431691}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 1589431693}
+        m_TargetAssemblyTypeName: PlayerInput, Assembly-CSharp
         m_MethodName: OnMovement
         m_Mode: 0
         m_Arguments:
@@ -2246,8 +2247,8 @@ MonoBehaviour:
     m_ActionName: Player/Look[/Mouse/delta,/Pen/delta]
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1589431691}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 1589431693}
+        m_TargetAssemblyTypeName: PlayerInput, Assembly-CSharp
         m_MethodName: OnAttack
         m_Mode: 0
         m_Arguments:
@@ -2302,8 +2303,8 @@ MonoBehaviour:
     m_ActionName: UI/TrackedDeviceOrientation
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1589431691}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 1589431693}
+        m_TargetAssemblyTypeName: PlayerInput, Assembly-CSharp
         m_MethodName: OnJump
         m_Mode: 0
         m_Arguments:
@@ -2318,8 +2319,8 @@ MonoBehaviour:
     m_ActionName: Player/Jump[/Keyboard/equals]
   - m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1589431691}
-        m_TargetAssemblyTypeName: PlayerController, Assembly-CSharp
+      - m_Target: {fileID: 1589431693}
+        m_TargetAssemblyTypeName: PlayerInput, Assembly-CSharp
         m_MethodName: OnDash
         m_Mode: 0
         m_Arguments:
@@ -2483,6 +2484,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   walkSpeed: 20
+  crouchWalkSpeed: 5
   canJump: 1
   jumpSpeed: 20
   canDoubleJump: 1
@@ -2498,10 +2500,6 @@ MonoBehaviour:
   wallRunAmount: 12
   canWallSlide: 1
   wallSlideAmount: 0
-  canGlide: 0
-  canGlideAfterWallContact: 0
-  glideTime: 2
-  glideDescentAmount: 2
   isJumping: 0
   isDoubleJumping: 0
   isTripleJumping: 0
@@ -2509,22 +2507,8 @@ MonoBehaviour:
   isWallRunning: 0
   isWallSliding: 0
   isGliding: 0
-  isCreeping: 0
-  isDucking: 0
-  powerJumpSpeed: 40
-  powerJumpWaitTime: 1.5
-  canPowerJump: 0
-  isPowerJumping: 0
-  canGroundDash: 0
-  canAirDash: 0
-  dashSpeed: 20
-  dashTime: 0.2
-  dashCooldownTime: 1
-  isDashing: 0
-  _dashTimer: 0
-  groundSlamSpeed: 60
-  canGroundSlam: 0
-  isGroundSlamming: 0
+  isCrouchWalking: 0
+  isCrouching: 0
   gravity: 40
 --- !u!114 &1589431692
 MonoBehaviour:
@@ -2535,7 +2519,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1589431685}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3bff654408004074191f7a6fe9ed6490, type: 3}
+  m_Script: {fileID: 11500000, guid: 092bbe5e2aeecc64da5a8ceb89d36650, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   below: 0
@@ -2545,14 +2529,26 @@ MonoBehaviour:
   raycastDistance: 0.2
   layerMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
   slopeAngleLimit: 45
   downForceAdjustment: 1.2
   groundType: 0
   hitGroundThisFrame: 0
   hitWallThisFrame: 0
-  _slopeNormal: {x: 0, y: 0}
-  _slopeAngle: 0
+--- !u!114 &1589431693
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1589431685}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fcfe515491f745847a62bada034a798c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  JumpButtonPressed: 0
+  JumpButtonReleased: 0
 --- !u!1 &1603410028
 GameObject:
   m_ObjectHideFlags: 0

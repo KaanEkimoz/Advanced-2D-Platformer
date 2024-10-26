@@ -1,17 +1,14 @@
 using System.Collections;
 using UnityEngine;
 using GlobalTypes;
-public class CharacterController2D : MonoBehaviour
+public class AdvancedCharacterCollision2D : MonoBehaviour
 {
     //Movement
     private Vector2 _moveAmount;
     private Vector2 _currentPosition;
     private Vector2 _lastPosition;
 
-    //Components
-    private Rigidbody2D _rigidbody;
-    private CapsuleCollider2D _capsuleCollider;
-    
+    //Raycasts
     public bool below;
     public bool left;
     public bool right;
@@ -28,13 +25,17 @@ public class CharacterController2D : MonoBehaviour
     public GroundType groundType;
     public bool hitGroundThisFrame;
     public bool hitWallThisFrame;
-    
+
     //TODO: Change to private
-    public Vector2 _slopeNormal;
-    public float _slopeAngle;
+    private Vector2 _slopeNormal;
+    private float _slopeAngle;
     
     private bool _inAirLastFrame;
     private bool _noSideCollisionLastFrame;
+
+    //Components
+    private Rigidbody2D _rigidbody;
+    private CapsuleCollider2D _capsuleCollider;
 
     void Start()
     {
