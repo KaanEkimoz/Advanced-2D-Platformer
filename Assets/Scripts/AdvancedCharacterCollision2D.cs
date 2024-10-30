@@ -3,35 +3,38 @@ using UnityEngine;
 using GlobalTypes;
 public class AdvancedCharacterCollision2D : MonoBehaviour
 {
-    //Movement
-    private Vector2 _moveAmount;
-    private Vector2 _currentPosition;
-    private Vector2 _lastPosition;
-
-    //Raycasts
-    public bool below;
-    public bool left;
-    public bool right;
-    public bool above;
-    
-    private Vector2[] _raycastPosition = new Vector2[3];
-    private RaycastHit2D[] _raycastHits = new RaycastHit2D[3];
+    [Header("Raycast Settings")]
     public float raycastDistance = 0.2f;
     public LayerMask layerMask;
     public float slopeAngleLimit = 45f;
     public float downForceAdjustment = 1.2f;
-    
-    private bool _disableGroundCheck;
+    [Space]
+    //Those variables only for testing purposes, can be hidden after testing
+    [Header("Test Variables")]
+    public bool below;
+    public bool left;
+    public bool right;
+    public bool above;
     public GroundType groundType;
-    public bool hitGroundThisFrame;
-    public bool hitWallThisFrame;
 
-    //TODO: Change to private
-    private Vector2 _slopeNormal;
+    //Movement
+    private Vector2 _moveAmount;
+    private Vector2 _currentPosition;
+    private Vector2 _lastPosition;
+    //Slope 
     private float _slopeAngle;
+    private Vector2 _slopeNormal;
+
+    //Raycast
+    private Vector2[] _raycastPosition = new Vector2[3];
+    private RaycastHit2D[] _raycastHits = new RaycastHit2D[3];
     
+    //Flags
+    [HideInInspector] public bool hitGroundThisFrame;
+    [HideInInspector] public bool hitWallThisFrame;
     private bool _inAirLastFrame;
     private bool _noSideCollisionLastFrame;
+    private bool _disableGroundCheck;
 
     //Components
     private Rigidbody2D _rigidbody;
@@ -57,7 +60,6 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
                 _moveAmount.y = -Mathf.Abs(Mathf.Tan(_slopeAngle * Mathf.Deg2Rad) * _moveAmount.x);
                 _moveAmount.y *= downForceAdjustment;
             }
-
         }
         _currentPosition = _lastPosition + _moveAmount;
 
@@ -79,9 +81,7 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
             hitWallThisFrame = true;
         else
             hitWallThisFrame = false;
-
     }
-
     public void Move(Vector2 movement)
     {
         _moveAmount += movement;

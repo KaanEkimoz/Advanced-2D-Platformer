@@ -28,9 +28,20 @@ public class PlayerInputHandler : MonoBehaviour
 
     //Dash
     private bool DashButtonPressed;
+    private bool _isDashButtonPressedThisFrame;
 
     //Attack
     private bool AttackButtonPressed;
+
+    public bool IsDashButtonPressedThisFrame()
+    {
+        if (_isDashButtonPressedThisFrame)
+        {
+            _isDashButtonPressedThisFrame = false;
+            return true;
+        }
+        return false;
+    }
 
     public bool IsJumpButtonPressedThisFrame()
     {
@@ -54,14 +65,14 @@ public class PlayerInputHandler : MonoBehaviour
     }
     public int GetPlayerDirection()
     {
-        if(GetMovementInput().x > 0)
+        if (transform.eulerAngles.y == 0)
             return 1; //right
 
         return -1; //left
     }
 
     #region Input Functions
-    public void OnMovement(InputAction.CallbackContext context)
+        public void OnMovement(InputAction.CallbackContext context)
     {
         _movementInputXY = context.ReadValue<Vector2>();
     }
@@ -85,6 +96,9 @@ public class PlayerInputHandler : MonoBehaviour
 
     public void OnDash(InputAction.CallbackContext context)
     {
+        if (context.phase == InputActionPhase.Started)
+            _isDashButtonPressedThisFrame = true;
+
         if (context.started)
             DashButtonPressed = true;
     }

@@ -52,9 +52,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool isCrouching;
 
     //Movement
-    private Vector2 _movementVector;
-    private bool _isPlayerFacingRight;
-
+    public Vector2 _movementVector;
+    private bool _isPlayerFacingRight = true;
+    
     //Components
     private AdvancedCharacterCollision2D _characterController;
     private CapsuleCollider2D _capsuleCollider;
@@ -125,7 +125,7 @@ public class PlayerMovement : MonoBehaviour
         //Crouch
         if (PlayerInputHandler.Instance.IsPlayerPressingDownMovementButton() && !isCrouching)
             Crouch();
-        else if (isCrouching && HasUnCrouchSpace())
+        else if (PlayerInputHandler.Instance.GetMovementInput().y >= 0 && isCrouching && HasUnCrouchSpace())
             UnCrouch();
 
         //Crouch Walk

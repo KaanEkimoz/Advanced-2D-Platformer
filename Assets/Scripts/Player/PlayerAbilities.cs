@@ -25,7 +25,6 @@ public class PlayerAbilities : MonoBehaviour
     [SerializeField] private bool canGroundSlam;
     public float groundSlamSpeed = 60f;
 
-
     //Player States
     [Space]
     [SerializeField] private bool isGliding;
@@ -37,15 +36,44 @@ public class PlayerAbilities : MonoBehaviour
     private bool _startGlide = true;
     private float _currentGlideTime;
 
-    //Timers
+    //Dash
     private float _dashTimer;
-    private float _powerJumpTimer;
 
+    //Power Jump
+    public float _powerJumpTimer;
+
+    //Player Movement
+    private PlayerMovement _playerMovement;
+    private AdvancedCharacterCollision2D _characterCollision2D;
     private Vector2 _targetMoveDirection;
 
+    private void Start()
+    {
+        _playerMovement = GetComponent<PlayerMovement>();
+        _characterCollision2D = GetComponent<AdvancedCharacterCollision2D>();
+    }
     private void Update()
     {
         RunDashTimer();
+
+        if (PlayerInputHandler.Instance.GetMovementInput().y < 0 && PlayerInputHandler.Instance.GetMovementInput().x == 0)
+            _powerJumpTimer += Time.deltaTime;
+        else
+            _powerJumpTimer = 0;
+
+        if(canPowerJump  && _playerMovement._movementVector.y > 0 &&  _characterCollision2D.below && _characterCollision2D.groundType != GroundType.OneWayPlatform && (_powerJumpTimer > powerJumpWaitTime))
+            StartCoroutine("PowerJumpWaiter");
+        
+
+        if (PlayerInputHandler.Instance.IsDashButtonPressedThisFrame())
+            StartCoroutine("StartDashing");
+
+        if (isDashing)
+            _characterCollision2D.Move(new Vector2(PlayerInputHandler.Instance.GetPlayerDirection() * dashSpeed * Time.deltaTime, 0));
+
+        if(isPowerJumping)
+            _characterCollision2D.Move(Vector2.up * powerJumpSpeed * Time.deltaTime);
+
 
         /*if (canPowerJump && isCrouching && _characterController.groundType != GroundType.OneWayPlatform && (_powerJumpTimer > powerJumpWaitTime))
         {
@@ -66,12 +94,6 @@ public class PlayerAbilities : MonoBehaviour
     {
         if (_dashTimer > 0)
             _dashTimer -= Time.deltaTime;
-
-        if (isDashing)
-        {
-            _targetMoveDirection.x = PlayerInputHandler.Instance.GetPlayerDirection() * dashSpeed;
-            _targetMoveDirection.y = 0;
-        }
     }
 
     #region Coroutines
@@ -80,8 +102,9 @@ public class PlayerAbilities : MonoBehaviour
         isPowerJumping = true;
         yield return new WaitForSeconds(0.8f);
         isPowerJumping = false;
+        _powerJumpTimer = 0;
     }
-    IEnumerator Dash()
+    IEnumerator StartDashing()
     {
         isDashing = true;
         yield return new WaitForSeconds(dashTime);
