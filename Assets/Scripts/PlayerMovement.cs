@@ -134,7 +134,7 @@ public class PlayerMovement : MonoBehaviour
         else
             isCrouchWalking = false;
     }
-    private void ResetVerticalMovement()
+    public void ResetVerticalMovement()
     {
         _movementVector.y = 0f;
     }

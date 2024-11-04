@@ -1,6 +1,7 @@
 using GlobalTypes;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.EventSystems;
 public class PlayerAbilities : MonoBehaviour
 {
     [Header("Glide")]
@@ -61,12 +62,18 @@ public class PlayerAbilities : MonoBehaviour
         else
             _powerJumpTimer = 0;
 
-        if(canPowerJump  && _playerMovement._movementVector.y > 0 &&  _characterCollision2D.below && _characterCollision2D.groundType != GroundType.OneWayPlatform && (_powerJumpTimer > powerJumpWaitTime))
-            StartCoroutine("PowerJumpWaiter");
-        
+        if(canPowerJump  && _playerMovement._movementVector.y > 0 && _characterCollision2D.groundType != GroundType.OneWayPlatform && 
+            (_powerJumpTimer > powerJumpWaitTime))
+            StartCoroutine(nameof(PowerJumpWaiter));
+
+        if(PlayerInputHandler.Instance.IsAttackButtonPressedThisFrame() && !isPowerJumping && _playerMovement._movementVector.y <= 0f )
+            isGroundSlamming = true;
 
         if (PlayerInputHandler.Instance.IsDashButtonPressedThisFrame())
-            StartCoroutine("StartDashing");
+            StartCoroutine(nameof(StartDashing));
+
+        if (isGroundSlamming)
+            _characterCollision2D.Move(Vector2.down * groundSlamSpeed * Time.deltaTime);
 
         if (isDashing)
             _characterCollision2D.Move(new Vector2(PlayerInputHandler.Instance.GetPlayerDirection() * dashSpeed * Time.deltaTime, 0));
@@ -74,7 +81,8 @@ public class PlayerAbilities : MonoBehaviour
         if(isPowerJumping)
             _characterCollision2D.Move(Vector2.up * powerJumpSpeed * Time.deltaTime);
 
-
+        if(_characterCollision2D.below)
+            isGroundSlamming = false;
         /*if (canPowerJump && isCrouching && _characterController.groundType != GroundType.OneWayPlatform && (_powerJumpTimer > powerJumpWaitTime))
         {
             _moveDirection.y = powerJumpSpeed;
@@ -101,8 +109,9 @@ public class PlayerAbilities : MonoBehaviour
     {
         isPowerJumping = true;
         yield return new WaitForSeconds(0.8f);
-        isPowerJumping = false;
         _powerJumpTimer = 0;
+        isPowerJumping = false;
+        
     }
     IEnumerator StartDashing()
     {

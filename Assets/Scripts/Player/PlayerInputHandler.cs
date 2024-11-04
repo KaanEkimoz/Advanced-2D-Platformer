@@ -32,6 +32,7 @@ public class PlayerInputHandler : MonoBehaviour
 
     //Attack
     private bool AttackButtonPressed;
+    private bool _isAttackButtonPressedThisFrame;
 
     public bool IsDashButtonPressedThisFrame()
     {
@@ -57,6 +58,15 @@ public class PlayerInputHandler : MonoBehaviour
         if(GetMovementInput().y < 0)
             return true;
 
+        return false;
+    }
+    public bool IsAttackButtonPressedThisFrame()
+    {
+        if (_isAttackButtonPressedThisFrame)
+        {
+            _isAttackButtonPressedThisFrame = false;
+            return true;
+        }
         return false;
     }
     public Vector2 GetMovementInput()
@@ -104,6 +114,9 @@ public class PlayerInputHandler : MonoBehaviour
     }
     public void OnAttack(InputAction.CallbackContext context)
     {
+        if (context.phase == InputActionPhase.Started)
+            _isAttackButtonPressedThisFrame = true;
+
         if (context.started)
             AttackButtonPressed = true;
     }
