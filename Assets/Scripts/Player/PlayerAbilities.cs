@@ -1,7 +1,6 @@
 using GlobalTypes;
 using System.Collections;
 using UnityEngine;
-using UnityEngine.EventSystems;
 public class PlayerAbilities : MonoBehaviour
 {
     [Header("Glide")]
@@ -24,14 +23,13 @@ public class PlayerAbilities : MonoBehaviour
     [Space]
     [Header("Ground Slam")]
     [SerializeField] private bool canGroundSlam;
-    public float groundSlamSpeed = 60f;
+    [SerializeField] private float groundSlamSpeed = 60f;
 
     //Player States
-    [Space]
-    [SerializeField] private bool isGliding;
-    [SerializeField] private bool isPowerJumping;
-    [SerializeField] private bool isDashing;
-    [SerializeField] private bool isGroundSlamming;
+    private bool isGliding;
+    private bool isPowerJumping;
+    private bool isDashing;
+    private bool isGroundSlamming;
 
     //Glide
     private bool _startGlide = true;
@@ -52,16 +50,14 @@ public class PlayerAbilities : MonoBehaviour
     {
         _playerMovement = GetComponent<PlayerMovement>();
         _characterCollision2D = GetComponent<AdvancedCharacterCollision2D>();
+        _currentGlideTime = glideTime;
     }
     private void Update()
     {
         RunDashTimer();
 
-        if (PlayerInputHandler.Instance.GetMovementInput().y < 0 && PlayerInputHandler.Instance.GetMovementInput().x == 0)
-            _powerJumpTimer += Time.deltaTime;
-        else
-            _powerJumpTimer = 0;
-
+        RunPowerJumpTimer();
+        
         if(canPowerJump  && _playerMovement._movementVector.y > 0 && _characterCollision2D.groundType != GroundType.OneWayPlatform && 
             (_powerJumpTimer > powerJumpWaitTime))
             StartCoroutine(nameof(PowerJumpWaiter));
@@ -72,6 +68,11 @@ public class PlayerAbilities : MonoBehaviour
         if (PlayerInputHandler.Instance.IsDashButtonPressedThisFrame())
             StartCoroutine(nameof(StartDashing));
 
+        if(canGlide && PlayerInputHandler.Instance.GetMovementInput().y > 0 && _playerMovement._movementVector.y < 0.2f && _currentGlideTime > 0f)
+            isGliding = true;
+        else
+            isGliding = false;
+
         if (isGroundSlamming)
             _characterCollision2D.Move(Vector2.down * groundSlamSpeed * Time.deltaTime);
 
@@ -81,29 +82,38 @@ public class PlayerAbilities : MonoBehaviour
         if(isPowerJumping)
             _characterCollision2D.Move(Vector2.up * powerJumpSpeed * Time.deltaTime);
 
-        if(_characterCollision2D.below)
-            isGroundSlamming = false;
-        /*if (canPowerJump && isCrouching && _characterController.groundType != GroundType.OneWayPlatform && (_powerJumpTimer > powerJumpWaitTime))
+        if (isGliding)
         {
-            _moveDirection.y = powerJumpSpeed;
-            StartCoroutine("PowerJumpWaiter");
+            _playerMovement._movementVector.y = 0f;
+            _characterCollision2D.Move(Vector2.down * glideDescentAmount * Time.deltaTime);
+            _currentGlideTime -= Time.deltaTime;
+        }
+            
+        if (_characterCollision2D.IsGrounded())
+        {
+            isGroundSlamming = false;
+            _currentGlideTime = glideTime;
         }
 
-        //canGlideAfterWallContact
-        if ((_characterController.left || _characterController.right) && canWallRun)
-        {
-            if (canGlideAfterWallContact)
-                _currentGlideTime = glideTime;
-            else
-                _currentGlideTime = 0;
-        }*/
+        if (HasWallContact() && canGlideAfterWallContact)
+            _currentGlideTime = glideTime;
     }
     private void RunDashTimer()
     {
         if (_dashTimer > 0)
             _dashTimer -= Time.deltaTime;
     }
-
+    private void RunPowerJumpTimer()
+    {
+        if (PlayerInputHandler.Instance.GetMovementInput().y < 0 && PlayerInputHandler.Instance.GetMovementInput().x == 0)
+            _powerJumpTimer += Time.deltaTime;
+        else
+            _powerJumpTimer = 0;
+    }
+    private bool HasWallContact()
+    {
+        return _characterCollision2D.left || _characterCollision2D.right;
+    }
     #region Coroutines
     IEnumerator PowerJumpWaiter()
     {
@@ -120,14 +130,5 @@ public class PlayerAbilities : MonoBehaviour
         isDashing = false;
         _dashTimer = dashCooldownTime;
     }
-    /* if (context.started && _dashTimer <= 0)
-        {
-            if ((canAirDash && !_characterController.below)
-                || (canGroundDash && _characterController.below))
-            {
-                StartCoroutine("Dash");
-            }
-        }
-    */
     #endregion
 }

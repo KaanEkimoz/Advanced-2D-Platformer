@@ -45,6 +45,10 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
         _rigidbody = gameObject.GetComponent<Rigidbody2D>();
         _capsuleCollider = gameObject.GetComponent<CapsuleCollider2D>();
     }
+    public bool IsGrounded()
+    {
+        return below;
+    }
     void Update()
     {
         _inAirLastFrame = !below;

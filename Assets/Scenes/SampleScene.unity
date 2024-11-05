@@ -2709,10 +2709,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca7c6b28217f2e443aaa3864c02cdc8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canGlide: 0
+  canGlide: 1
   canGlideAfterWallContact: 0
   glideTime: 2
-  glideDescentAmount: 2
+  glideDescentAmount: 1
   canPowerJump: 1
   powerJumpSpeed: 35
   powerJumpWaitTime: 1.5
@@ -2727,6 +2727,7 @@ MonoBehaviour:
   isPowerJumping: 0
   isDashing: 0
   isGroundSlamming: 0
+  _currentGlideTime: 0
   _powerJumpTimer: 0
 --- !u!1 &1603410028
 GameObject:
