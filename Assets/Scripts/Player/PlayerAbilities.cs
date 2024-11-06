@@ -84,7 +84,7 @@ public class PlayerAbilities : MonoBehaviour
 
         if (isGliding)
         {
-            _playerMovement._movementVector.y = 0f;
+            _playerMovement.ResetVerticalMovement();
             _characterCollision2D.Move(Vector2.down * glideDescentAmount * Time.deltaTime);
             _currentGlideTime -= Time.deltaTime;
         }
@@ -92,11 +92,16 @@ public class PlayerAbilities : MonoBehaviour
         if (_characterCollision2D.IsGrounded())
         {
             isGroundSlamming = false;
-            _currentGlideTime = glideTime;
+            ResetGlideTimer();
         }
 
-        if (HasWallContact() && canGlideAfterWallContact)
-            _currentGlideTime = glideTime;
+        if (canGlideAfterWallContact && HasWallContact())
+            ResetGlideTimer();
+
+    }
+    private void ResetGlideTimer()
+    {
+        _currentGlideTime = glideTime;
     }
     private void RunDashTimer()
     {

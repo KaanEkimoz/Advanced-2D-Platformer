@@ -2723,11 +2723,6 @@ MonoBehaviour:
   dashCooldownTime: 5
   canGroundSlam: 0
   groundSlamSpeed: 60
-  isGliding: 0
-  isPowerJumping: 0
-  isDashing: 0
-  isGroundSlamming: 0
-  _currentGlideTime: 0
   _powerJumpTimer: 0
 --- !u!1 &1603410028
 GameObject:
