@@ -9,18 +9,22 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
     public float slopeAngleLimit = 45f;
     public float downForceAdjustment = 1.2f;
     [Space]
-    //Those variables only for testing purposes, can be hidden after testing
+
+
+    //Those variables only for testing purposes, can be made private after testing
     [Header("Test Variables")]
     public bool below;
     public bool left;
     public bool right;
     public bool above;
 
-
     public GroundType groundType;
     public GroundType ceilingType;
     public WallType rightWallType;
     public WallType leftWallType;
+
+    private GameObject _groundCollisionObject;
+    private GameObject _ceilingCollisionObject;
 
     //Movement
     private Vector2 _moveAmount;
@@ -54,7 +58,7 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
     {
         return below;
     }
-    void Update()
+    private void Update()
     {
         _inAirLastFrame = !below;
 
@@ -103,6 +107,7 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
         if (hit.collider)
         {
             groundType = DetectGroundType(hit.collider);
+            _groundCollisionObject = hit.collider.gameObject;
 
             _slopeNormal = hit.normal;
             _slopeAngle = Vector2.SignedAngle(_slopeNormal, Vector2.up);
@@ -114,10 +119,26 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
         }
         else
         {
+            _groundCollisionObject = null;
             groundType = GroundType.None;
             below = false;
         }
+    }
+    public GameObject GetGroundCollisionObject()
+    {
+        return _groundCollisionObject;
+    }
+    public GameObject GetCeilingCollisionObject()
+    {
+        Vector2 raycastAbove = transform.position + new Vector3(0, _capsuleCollider.size.y * 0.5f, 0);
+        RaycastHit2D hit = Physics2D.Raycast(raycastAbove, Vector2.up,
+            raycastDistance, layerMask);
 
+        Debug.DrawRay(raycastAbove, Vector2.up * raycastDistance, Color.red);
+        if (hit.collider)
+            return hit.collider.gameObject;
+
+        return null;
     }
     private void CheckOtherCollisions()
     {
@@ -136,8 +157,6 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
             leftWallType = WallType.None;
         }
             
-
-
         //check right
         RaycastHit2D rightHit = Physics2D.BoxCast(_capsuleCollider.bounds.center, _capsuleCollider.size * 0.75f, 0f, Vector2.right,
             raycastDistance * 2f, layerMask);
@@ -153,22 +172,26 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
             rightWallType = WallType.None;
         }
             
-
         //check above
         RaycastHit2D aboveHit = Physics2D.CapsuleCast(_capsuleCollider.bounds.center, _capsuleCollider.size, CapsuleDirection2D.Vertical,
             0f, Vector2.up, raycastDistance, layerMask);
 
         if (aboveHit.collider)
         {
-            above = true;
             ceilingType = DetectGroundType(aboveHit.collider);
+
+            if (aboveHit.collider.gameObject.GetComponent<GroundEffector>().groundType == GroundType.OneWayPlatform)
+                above = false;
+            else
+                above = true;
+
         }
         else
         {
             above = false;
             ceilingType = GroundType.None;
         }
-            
+
     }
     private void DrawDebugRays(Vector2 direction, Color color)
     {
