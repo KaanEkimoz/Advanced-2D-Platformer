@@ -97,7 +97,6 @@ public class PlayerAbilities : MonoBehaviour
 
         if (canGlideAfterWallContact && HasWallContact())
             ResetGlideTimer();
-
     }
     private void ResetGlideTimer()
     {

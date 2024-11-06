@@ -15,7 +15,12 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
     public bool left;
     public bool right;
     public bool above;
+
+
     public GroundType groundType;
+    public GroundType ceilingType;
+    public WallType rightWallType;
+    public WallType leftWallType;
 
     //Movement
     private Vector2 _moveAmount;
@@ -121,9 +126,16 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
             raycastDistance * 2f, layerMask);
 
         if (leftHit.collider)
+        {
             left = true;
+            leftWallType = DetectWallType(leftHit.collider);
+        }
         else
+        {
             left = false;
+            leftWallType = WallType.None;
+        }
+            
 
 
         //check right
@@ -131,25 +143,37 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
             raycastDistance * 2f, layerMask);
 
         if (rightHit.collider)
+        {
             right = true;
+            rightWallType = DetectWallType(rightHit.collider);
+        }
         else
+        {
             right = false;
+            rightWallType = WallType.None;
+        }
+            
 
         //check above
         RaycastHit2D aboveHit = Physics2D.CapsuleCast(_capsuleCollider.bounds.center, _capsuleCollider.size, CapsuleDirection2D.Vertical,
             0f, Vector2.up, raycastDistance, layerMask);
 
         if (aboveHit.collider)
+        {
             above = true;
+            ceilingType = DetectGroundType(aboveHit.collider);
+        }
         else
+        {
             above = false;
+            ceilingType = GroundType.None;
+        }
+            
     }
     private void DrawDebugRays(Vector2 direction, Color color)
     {
         for (int i = 0; i < _raycastPosition.Length; i++)
-        {
             Debug.DrawRay(_raycastPosition[i], direction * raycastDistance, color);
-        }
     }
     public void DisableGroundCheck()
     {
@@ -171,5 +195,15 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
         }
         else
             return GroundType.DefaultPlatform;
+    }
+    private WallType DetectWallType(Collider2D collider)
+    {
+        if (collider.GetComponent<GroundEffector>())
+        {
+            WallEffector wallEffector = collider.GetComponent<WallEffector>();
+            return wallEffector.wallType;
+        }
+        else
+            return WallType.Normal;
     }
 }
