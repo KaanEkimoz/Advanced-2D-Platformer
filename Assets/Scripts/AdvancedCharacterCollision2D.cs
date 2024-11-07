@@ -10,7 +10,6 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
     public float downForceAdjustment = 1.2f;
     [Space]
 
-
     //Those variables only for testing purposes, can be made private after testing
     [Header("Test Variables")]
     public bool below;
@@ -184,14 +183,12 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
                 above = false;
             else
                 above = true;
-
         }
         else
         {
             above = false;
             ceilingType = GroundType.None;
         }
-
     }
     private void DrawDebugRays(Vector2 direction, Color color)
     {

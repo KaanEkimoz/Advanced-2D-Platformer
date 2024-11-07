@@ -1,8 +1,6 @@
 using GlobalTypes;
-using JetBrains.Annotations;
 using System.Collections;
 using UnityEngine;
-
 public class PlayerInteraction : MonoBehaviour
 {
     //Components
@@ -15,6 +13,12 @@ public class PlayerInteraction : MonoBehaviour
     }
     void Update()
     {
+
+        if (_characterCollision2D.groundType == GroundType.MovingPlatform)
+        {
+            Vector2 _currentMovingPlatformVelocity = _characterCollision2D.GetGroundCollisionObject().GetComponent<MovingPlatform>().Velocity;
+            _characterCollision2D.Move(_currentMovingPlatformVelocity);
+        }
         if (_characterCollision2D.ceilingType == GroundType.OneWayPlatform && _playerMovement._movementVector.y > 0f)
             StartCoroutine(DisableOneWayPlatform(_characterCollision2D.GetCeilingCollisionObject()));
 
@@ -23,14 +27,14 @@ public class PlayerInteraction : MonoBehaviour
             StartCoroutine(DisableOneWayPlatform(_characterCollision2D.GetGroundCollisionObject()));
     }
 
+    #region Coroutines
     IEnumerator DisableOneWayPlatform(GameObject currentOneWayPlatform)
     {
-        currentOneWayPlatform.GetComponent<EdgeCollider2D>().enabled = false;
+        EdgeCollider2D _oneWayPlatformEdgeCollider = currentOneWayPlatform.GetComponent<EdgeCollider2D>();
 
-        yield return new WaitForSeconds(0.25f);
-
-        currentOneWayPlatform.GetComponent<EdgeCollider2D>().enabled = true;
+        _oneWayPlatformEdgeCollider.enabled = false;
+        yield return new WaitForSeconds(0.5f);
+        _oneWayPlatformEdgeCollider.enabled = true;
     }
-
-
+    #endregion
 }

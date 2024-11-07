@@ -1,3 +1,4 @@
+using GlobalTypes;
 using System.Collections;
 using UnityEngine;
 public class PlayerMovement : MonoBehaviour
@@ -140,7 +141,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void ResetJumpStates()
     {
-        //jumps
+        //Jumps
         isJumping = false;
         isDoubleJumping = false;
         isTripleJumping = false;
@@ -154,12 +155,14 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Crouch()
     {
+        if (_characterController.groundType == GroundType.OneWayPlatform)
+            return;
+
         _capsuleCollider.size = new Vector2(_capsuleCollider.size.x, _capsuleCollider.size.y / 2);
         transform.position = new Vector2(transform.position.x, transform.position.y - (_originalColliderSize.y / 4));
         _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp_crouching");
 
         isCrouching = true;
-        
     }
     private bool HasUnCrouchSpace()
     {
