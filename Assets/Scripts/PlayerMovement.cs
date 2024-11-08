@@ -1,5 +1,6 @@
 using GlobalTypes;
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
@@ -53,28 +54,46 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool isCrouching;
 
     //Movement
-    public Vector2 _movementVector;
+    [HideInInspector] public Vector2 _movementVector;
     private bool _isPlayerFacingRight = true;
+
+    //Movement Plus
+    //private Vector2 _moveAmount;
+    private Vector2 _currentPosition;
+    private Vector2 _lastPosition;
+
+
+    Vector2 _moveAmount = Vector2.zero;
+    //Slope 
+    private float slopeAngleLimit = 45f;
+    private float downForceAdjustment = 1.2f;
+    private float _slopeAngle;
+    private Vector2 _slopeNormal;
+    private Vector2 _slopeMoveAmount;
     
     //Components
-    private AdvancedCharacterCollision2D _characterController;
+    private AdvancedCharacterCollision2D _advancedCharacterCollision2D;
     private CapsuleCollider2D _capsuleCollider;
+    private Rigidbody2D _rigidbody2D;
     private SpriteRenderer _spriteRenderer;
     private Vector2 _originalColliderSize;
 
     private void Start()
     {
-        _characterController = gameObject.GetComponent<AdvancedCharacterCollision2D>();
-        _capsuleCollider = gameObject.GetComponent<CapsuleCollider2D>();
-        _spriteRenderer = gameObject.GetComponent<SpriteRenderer>();
+        _advancedCharacterCollision2D = GetComponent<AdvancedCharacterCollision2D>();
+        _capsuleCollider = GetComponent<CapsuleCollider2D>();
+        _rigidbody2D = GetComponent<Rigidbody2D>();
+        _spriteRenderer = GetComponent<SpriteRenderer>();
         _originalColliderSize = _capsuleCollider.size;
     }
-   
     private void Update()
     {
+        _lastPosition = _rigidbody2D.position;
+
         if (!isWallJumping)
         {
             HandleHorizontalMovement();
+            HandleSlopeMovement();
             AdjustPlayerDirection();
         }
 
@@ -85,7 +104,16 @@ public class PlayerMovement : MonoBehaviour
         else
             OnTheAir();
 
-        _characterController.Move(_movementVector * Time.deltaTime);
+        _moveAmount = _movementVector * Time.deltaTime;
+  
+        _currentPosition = _lastPosition + _moveAmount;
+
+        _rigidbody2D.MovePosition(_currentPosition);
+
+        //Move(_movementVector * Time.deltaTime);
+
+        _moveAmount = Vector2.zero;
+        //_advancedCharacterCollision2D.Move(_movementVector * Time.deltaTime);
     }
     private void HandleHorizontalMovement()
     {
@@ -95,6 +123,29 @@ public class PlayerMovement : MonoBehaviour
             _movementVector.x *= crouchWalkSpeed;
         else
             _movementVector.x *= walkSpeed;
+    }
+    private void HandleSlopeMovement()
+    {
+        float slopeAngle = _advancedCharacterCollision2D.GetSlopeAngle();
+
+        if (slopeAngle != 0 && _advancedCharacterCollision2D.below == true)
+        {
+            if ((_movementVector.x > 0f && _slopeAngle > 0f) || (_movementVector.x < 0f && slopeAngle < 0f))
+            {
+                _movementVector.y += -Mathf.Abs(Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * _movementVector.x);
+                _movementVector.y *= downForceAdjustment;
+            }
+        }
+
+        //_currentPosition = _lastPosition + _moveAmount;
+
+        //_rigidbody2D.MovePosition(_currentPosition);
+
+        //_moveAmount = Vector2.zero;
+    }
+    public void Move(Vector2 movement)
+    {
+        _movementVector += movement;
     }
     private void AdjustPlayerDirection()
     {
@@ -111,7 +162,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private bool IsCharacterOnTheGround()
     {
-        return _characterController.below;
+        return _advancedCharacterCollision2D.below;
     }
     private void OnTheGround()
     {
@@ -151,11 +202,11 @@ public class PlayerMovement : MonoBehaviour
     {
         _movementVector.y = jumpSpeed;
         isJumping = true;
-        _characterController.DisableGroundCheck();
+        _advancedCharacterCollision2D.DisableGroundCheck();
     }
     private void Crouch()
     {
-        if (_characterController.groundType == GroundType.OneWayPlatform)
+        if (_advancedCharacterCollision2D.groundType == GroundType.OneWayPlatform)
             return;
 
         _capsuleCollider.size = new Vector2(_capsuleCollider.size.x, _capsuleCollider.size.y / 2);
@@ -168,7 +219,7 @@ public class PlayerMovement : MonoBehaviour
     {
         RaycastHit2D hitCeiling = Physics2D.CapsuleCast(_capsuleCollider.bounds.center,
                     transform.localScale, CapsuleDirection2D.Vertical, 0f, Vector2.up,
-                    _originalColliderSize.y / 2, _characterController.layerMask);
+                    _originalColliderSize.y / 2, _advancedCharacterCollision2D.layerMask);
 
         return !hitCeiling.collider;
     }
@@ -226,9 +277,9 @@ public class PlayerMovement : MonoBehaviour
             {
                 _movementVector.y = wallRunAmount;
 
-                if (_characterController.left)
+                if (_advancedCharacterCollision2D.left)
                     transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-                else if (_characterController.right)
+                else if (_advancedCharacterCollision2D.right)
                     transform.rotation = Quaternion.Euler(0f, 0f, 0f);
 
                 StartCoroutine("WallRunWaiter");
@@ -246,7 +297,7 @@ public class PlayerMovement : MonoBehaviour
         //Wall Slide
         if (canWallSlide && HasSideCollisions())
         {
-            if (_characterController.hitWallThisFrame)
+            if (_advancedCharacterCollision2D.hitWallThisFrame)
                 ResetVerticalMovement();
 
             if (_movementVector.y <= 0)
@@ -269,12 +320,12 @@ public class PlayerMovement : MonoBehaviour
     }
     private void WallJump()
     {
-        if (_movementVector.x <= 0 && _characterController.left)
+        if (_movementVector.x <= 0 && _advancedCharacterCollision2D.left)
         {
             _movementVector.x = wallJumpXSpeed;
             _movementVector.y = wallJumpYSpeed;
         }
-        else if (_movementVector.x >= 0 && _characterController.right)
+        else if (_movementVector.x >= 0 && _advancedCharacterCollision2D.right)
         {
             _movementVector.x = -wallJumpXSpeed;
             _movementVector.y = wallJumpYSpeed;
@@ -283,12 +334,12 @@ public class PlayerMovement : MonoBehaviour
     }
     private bool HasSideCollisions()
     {
-        return _characterController.right || _characterController.left;
+        return _advancedCharacterCollision2D.right || _advancedCharacterCollision2D.left;
     }
     void AdjustGravity()
     {
         //If Something Above Player Resets Vertical Movement
-        if (_movementVector.y > 0f && _characterController.above)
+        if (_movementVector.y > 0f && _advancedCharacterCollision2D.above)
             ResetVerticalMovement();
 
         //Wall Slide Gravity Adjustment

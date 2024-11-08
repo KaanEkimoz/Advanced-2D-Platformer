@@ -6,8 +6,7 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
     [Header("Raycast Settings")]
     public float raycastDistance = 0.2f;
     public LayerMask layerMask;
-    public float slopeAngleLimit = 45f;
-    public float downForceAdjustment = 1.2f;
+    
     [Space]
 
     //Those variables only for testing purposes, can be made private after testing
@@ -29,7 +28,10 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
     private Vector2 _moveAmount;
     private Vector2 _currentPosition;
     private Vector2 _lastPosition;
-    //Slope 
+
+    //Slope
+    private float slopeAngleLimit = 45f;
+    private float downForceAdjustment = 1.2f;
     private float _slopeAngle;
     private Vector2 _slopeNormal;
 
@@ -63,7 +65,7 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
 
         _noSideCollisionLastFrame = (!right && !left);
 
-        _lastPosition = _rigidbody.position;
+        /*_lastPosition = _rigidbody.position;
         
         if (_slopeAngle != 0 && below == true)
         {
@@ -77,7 +79,7 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
 
         _rigidbody.MovePosition(_currentPosition);
 
-        _moveAmount = Vector2.zero;
+        _moveAmount = Vector2.zero; */
         
         if (!_disableGroundCheck)
             CheckGrounded();
@@ -93,10 +95,6 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
             hitWallThisFrame = true;
         else
             hitWallThisFrame = false;
-    }
-    public void Move(Vector2 movement)
-    {
-        _moveAmount += movement;
     }
     private void CheckGrounded()
     {
@@ -122,6 +120,10 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
             groundType = GroundType.None;
             below = false;
         }
+    }
+    public float GetSlopeAngle()
+    {
+        return _slopeAngle;
     }
     public GameObject GetGroundCollisionObject()
     {

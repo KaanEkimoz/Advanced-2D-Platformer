@@ -17,7 +17,7 @@ public class PlayerInteraction : MonoBehaviour
         if (_characterCollision2D.groundType == GroundType.MovingPlatform)
         {
             Vector2 _currentMovingPlatformVelocity = _characterCollision2D.GetGroundCollisionObject().GetComponent<MovingPlatform>().Velocity;
-            _characterCollision2D.Move(_currentMovingPlatformVelocity);
+            _playerMovement.Move(_currentMovingPlatformVelocity);
         }
         if (_characterCollision2D.ceilingType == GroundType.OneWayPlatform && _playerMovement._movementVector.y > 0f)
             StartCoroutine(DisableOneWayPlatform(_characterCollision2D.GetCeilingCollisionObject()));
