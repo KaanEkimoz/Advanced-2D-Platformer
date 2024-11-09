@@ -227,6 +227,7 @@ MonoBehaviour:
   - {fileID: 907708573057606963}
   - {fileID: 6417600767594403466}
   drawLineToCurrentWaypoint: 1
+  waypointWaitTime: 0.05
 --- !u!1 &6150173179973997157
 GameObject:
   m_ObjectHideFlags: 0

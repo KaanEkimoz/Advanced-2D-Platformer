@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 public class MovingPlatform : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class MovingPlatform : MonoBehaviour
     //Movement & Velocity
     private Vector2 _movementVelocity;
     private Vector3 _lastPosition;
+    private bool _canIncrementWaypoint = true;
 
     //Waypoint
     private Vector3 _currentWaypoint;
@@ -20,17 +22,20 @@ public class MovingPlatform : MonoBehaviour
     {
         _currentWaypointIndex = 0;
         _currentWaypoint = waypoints[_currentWaypointIndex].position;
+        _canIncrementWaypoint = true;
     }
     private void Update()
     {
         UpdateLastPosition();
+
         MoveTowardsCurrentWaypoint();
 
-        if(IsReachedTheWaypoint())
+        if (IsReachedTheWaypoint() && _canIncrementWaypoint)
             SetNextWaypoint();
 
         CalculateVelocity();
     }
+
     private void UpdateLastPosition()
     {
         _lastPosition = transform.position;
@@ -49,6 +54,8 @@ public class MovingPlatform : MonoBehaviour
 
         if (_currentWaypointIndex >= waypoints.Length)
             _currentWaypointIndex = 0;
+
+        StartCoroutine(LockWaypointIndex());
     }
     private void SetNextWaypoint()
     {
@@ -59,9 +66,14 @@ public class MovingPlatform : MonoBehaviour
     {
         _movementVelocity = transform.position - _lastPosition;
     }
-
     private void OnDrawGizmos()
     {
         Gizmos.DrawLine(transform.position, _currentWaypoint);
+    }
+    private IEnumerator LockWaypointIndex()
+    {
+        _canIncrementWaypoint = false;
+        yield return new WaitForSeconds(0.2f);
+        _canIncrementWaypoint = true;
     }
 }

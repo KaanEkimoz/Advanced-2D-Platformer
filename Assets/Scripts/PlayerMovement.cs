@@ -1,6 +1,5 @@
 using GlobalTypes;
 using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
@@ -8,6 +7,8 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float walkSpeed = 10f;
     [SerializeField] private float crouchWalkSpeed = 5f;
     [Space]
+    [Header("Slope Walk")]
+    [SerializeField] private float downForceAdjustment = 1.2f;
     [Header("Jump")]
     [SerializeField] private bool canJump = true;
     [SerializeField] private float jumpSpeed = 15f;
@@ -39,11 +40,9 @@ public class PlayerMovement : MonoBehaviour
     [Space]
     [Header("Gravity")]
     [SerializeField] private float gravity = 20f;
-
-    //TO DO: After fully tested the controller make the states private or protected, they are public for only testing purposes
     [Space]
     [Header("Player State")]
-    [SerializeField] private bool isJumping;
+    [SerializeField] public bool isJumping;
     [SerializeField] private bool isDoubleJumping;
     [SerializeField] private bool isTripleJumping;    
     [SerializeField] private bool isWallJumping;
@@ -55,22 +54,12 @@ public class PlayerMovement : MonoBehaviour
 
     //Movement
     [HideInInspector] public Vector2 _movementVector;
+    public Vector2 _externalMovementVector;
     private bool _isPlayerFacingRight = true;
-
-    //Movement Plus
-    //private Vector2 _moveAmount;
     private Vector2 _currentPosition;
     private Vector2 _lastPosition;
-
-
     Vector2 _moveAmount = Vector2.zero;
-    //Slope 
-    private float slopeAngleLimit = 45f;
-    private float downForceAdjustment = 1.2f;
-    private float _slopeAngle;
-    private Vector2 _slopeNormal;
-    private Vector2 _slopeMoveAmount;
-    
+
     //Components
     private AdvancedCharacterCollision2D _advancedCharacterCollision2D;
     private CapsuleCollider2D _capsuleCollider;
@@ -88,14 +77,13 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Update()
     {
-        _lastPosition = _rigidbody2D.position;
+       
 
-        if (!isWallJumping)
-        {
-            HandleHorizontalMovement();
-            HandleSlopeMovement();
-            AdjustPlayerDirection();
-        }
+    }
+
+    private void FixedUpdate()
+    {
+        _lastPosition = _rigidbody2D.position;
 
         //On the ground
         if (IsCharacterOnTheGround())
@@ -104,16 +92,20 @@ public class PlayerMovement : MonoBehaviour
         else
             OnTheAir();
 
-        _moveAmount = _movementVector * Time.deltaTime;
-  
+        if (!isWallJumping)
+        {
+            HandleHorizontalMovement();
+            HandleSlopeMovement();
+            AdjustPlayerDirection();
+        }
+        _moveAmount = (_movementVector * Time.deltaTime) + _externalMovementVector;
+
         _currentPosition = _lastPosition + _moveAmount;
 
         _rigidbody2D.MovePosition(_currentPosition);
 
-        //Move(_movementVector * Time.deltaTime);
-
+        _externalMovementVector = Vector2.zero;
         _moveAmount = Vector2.zero;
-        //_advancedCharacterCollision2D.Move(_movementVector * Time.deltaTime);
     }
     private void HandleHorizontalMovement()
     {
@@ -128,24 +120,18 @@ public class PlayerMovement : MonoBehaviour
     {
         float slopeAngle = _advancedCharacterCollision2D.GetSlopeAngle();
 
-        if (slopeAngle != 0 && _advancedCharacterCollision2D.below == true)
+        if (slopeAngle != 0 && IsCharacterOnTheGround())
         {
-            if ((_movementVector.x > 0f && _slopeAngle > 0f) || (_movementVector.x < 0f && slopeAngle < 0f))
+            if(_movementVector.x != 0f && slopeAngle != 0f && (_movementVector.x * slopeAngle > 0))
             {
-                _movementVector.y += -Mathf.Abs(Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * _movementVector.x);
+                _movementVector.y = -Mathf.Abs(Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * _movementVector.x);
                 _movementVector.y *= downForceAdjustment;
             }
         }
-
-        //_currentPosition = _lastPosition + _moveAmount;
-
-        //_rigidbody2D.MovePosition(_currentPosition);
-
-        //_moveAmount = Vector2.zero;
     }
     public void Move(Vector2 movement)
     {
-        _movementVector += movement;
+        _externalMovementVector += movement;
     }
     private void AdjustPlayerDirection()
     {
@@ -162,7 +148,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private bool IsCharacterOnTheGround()
     {
-        return _advancedCharacterCollision2D.below;
+        return _advancedCharacterCollision2D.IsGrounded();
     }
     private void OnTheGround()
     {
@@ -370,4 +356,3 @@ public class PlayerMovement : MonoBehaviour
     }
     #endregion
 }
-
