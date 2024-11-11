@@ -58,34 +58,34 @@ public class PlayerAbilities : MonoBehaviour
 
         RunPowerJumpTimer();
         
-        if(canPowerJump  && _playerMovement._movementVector.y > 0 && _characterCollision2D.groundType != GroundType.OneWayPlatform && 
+        if(canPowerJump  && _playerMovement._inputMovementVector.y > 0 && _characterCollision2D.groundType != GroundType.OneWayPlatform && 
             (_powerJumpTimer > powerJumpWaitTime))
             StartCoroutine(nameof(PowerJumpWaiter));
 
-        if(PlayerInputHandler.Instance.IsAttackButtonPressedThisFrame() && !isPowerJumping && _playerMovement._movementVector.y <= 0f )
+        if(PlayerInputHandler.Instance.IsAttackButtonPressedThisFrame() && !isPowerJumping && _playerMovement._inputMovementVector.y <= 0f )
             isGroundSlamming = true;
 
         if (PlayerInputHandler.Instance.IsDashButtonPressedThisFrame())
             StartCoroutine(nameof(StartDashing));
 
-        if(canGlide && PlayerInputHandler.Instance.GetMovementInput().y > 0 && _playerMovement._movementVector.y < 0.2f && _currentGlideTime > 0f)
+        if(canGlide && PlayerInputHandler.Instance.GetMovementInput().y > 0 && _playerMovement._inputMovementVector.y < 0.2f && _currentGlideTime > 0f)
             isGliding = true;
         else
             isGliding = false;
 
         if (isGroundSlamming)
-            _playerMovement.Move(Vector2.down * groundSlamSpeed * Time.deltaTime);
+            _playerMovement.PhysicsMove(Vector2.down * groundSlamSpeed * Time.deltaTime);
 
         if (isDashing)
-            _playerMovement.Move(new Vector2(PlayerInputHandler.Instance.GetPlayerDirection() * dashSpeed * Time.deltaTime, 0));
+            _playerMovement.PhysicsMove(new Vector2(PlayerInputHandler.Instance.GetPlayerDirection() * dashSpeed * Time.deltaTime, 0));
 
         if(isPowerJumping)
-            _playerMovement.Move(Vector2.up * powerJumpSpeed * Time.deltaTime);
+            _playerMovement.PhysicsMove(Vector2.up * powerJumpSpeed * Time.deltaTime);
 
         if (isGliding)
         {
             _playerMovement.ResetVerticalMovement();
-            _playerMovement.Move(Vector2.down * glideDescentAmount * Time.deltaTime);
+            _playerMovement.PhysicsMove(Vector2.down * glideDescentAmount * Time.deltaTime);
             _currentGlideTime -= Time.deltaTime;
         }
             

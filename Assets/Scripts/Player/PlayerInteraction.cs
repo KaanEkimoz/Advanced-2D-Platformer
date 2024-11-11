@@ -11,15 +11,9 @@ public class PlayerInteraction : MonoBehaviour
         _characterCollision2D = GetComponent<AdvancedCharacterCollision2D>();
         _playerMovement = GetComponent<PlayerMovement>();
     }
-    void FixedUpdate()
+    void Update()
     {
 
-        if (_characterCollision2D.groundType == GroundType.MovingPlatform)
-        {
-            Vector2 _currentMovingPlatformVelocity = _characterCollision2D.GetGroundCollisionObject().GetComponent<MovingPlatform>().Velocity;
-            _playerMovement.Move(_currentMovingPlatformVelocity);
-            Debug.Log("Movement Vector: " + _playerMovement._movementVector);   
-        }
         
         /*
         if(_characterCollision2D.groundType == GroundType.JumpPad)
@@ -29,12 +23,21 @@ public class PlayerInteraction : MonoBehaviour
             //_playerMovement.isJumping = true;
         }*/
 
-        if (_characterCollision2D.ceilingType == GroundType.OneWayPlatform && _playerMovement._movementVector.y > 0f)
+        if (_characterCollision2D.ceilingType == GroundType.OneWayPlatform && _playerMovement._inputMovementVector.y > 0f)
             StartCoroutine(DisableOneWayPlatform(_characterCollision2D.GetCeilingCollisionObject()));
 
 
         if (_characterCollision2D.groundType == GroundType.OneWayPlatform && PlayerInputHandler.Instance.IsPlayerPressingDownMovementButton())
             StartCoroutine(DisableOneWayPlatform(_characterCollision2D.GetGroundCollisionObject()));
+    }
+    private void FixedUpdate()
+    {
+        if (_characterCollision2D.groundType == GroundType.MovingPlatform)
+        {
+            Vector2 _currentMovingPlatformVelocity = _characterCollision2D.GetGroundCollisionObject().GetComponent<MovingPlatform>().Velocity;
+            _playerMovement.PhysicsMove(_currentMovingPlatformVelocity);
+        }
+
     }
 
     #region Coroutines

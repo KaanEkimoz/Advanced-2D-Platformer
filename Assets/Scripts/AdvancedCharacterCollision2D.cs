@@ -205,7 +205,7 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
     }
     IEnumerator EnableGroundCheck()
     {
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSeconds(0.2f);
         _disableGroundCheck = false;
     }
     private GroundType DetectGroundType(Collider2D collider)

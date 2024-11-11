@@ -53,8 +53,9 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private bool isCrouching;
 
     //Movement
-    [HideInInspector] public Vector2 _movementVector;
-    public Vector2 _externalMovementVector;
+    [HideInInspector] public Vector2 _inputMovementVector;
+    public Vector2 _physicsMovementVector;
+
     private bool _isPlayerFacingRight = true;
     private Vector2 _currentPosition;
     private Vector2 _lastPosition;
@@ -77,14 +78,6 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Update()
     {
-       
-
-    }
-
-    private void FixedUpdate()
-    {
-        _lastPosition = _rigidbody2D.position;
-
         //On the ground
         if (IsCharacterOnTheGround())
             OnTheGround();
@@ -98,23 +91,24 @@ public class PlayerMovement : MonoBehaviour
             HandleSlopeMovement();
             AdjustPlayerDirection();
         }
-        _moveAmount = (_movementVector * Time.deltaTime) + _externalMovementVector;
 
-        _currentPosition = _lastPosition + _moveAmount;
+        _moveAmount = _inputMovementVector;
+    }
 
-        _rigidbody2D.MovePosition(_currentPosition);
+    private void FixedUpdate()
+    {
+        _rigidbody2D.velocity = _moveAmount + _physicsMovementVector;
 
-        _externalMovementVector = Vector2.zero;
-        _moveAmount = Vector2.zero;
+        _physicsMovementVector = Vector2.zero;
     }
     private void HandleHorizontalMovement()
     {
-        _movementVector.x = PlayerInputHandler.Instance.GetMovementInput().x;
+        _inputMovementVector.x = PlayerInputHandler.Instance.GetMovementInput().normalized.x;
 
         if (isCrouchWalking)
-            _movementVector.x *= crouchWalkSpeed;
+            _inputMovementVector.x *= crouchWalkSpeed;
         else
-            _movementVector.x *= walkSpeed;
+            _inputMovementVector.x *= walkSpeed;
     }
     private void HandleSlopeMovement()
     {
@@ -122,25 +116,29 @@ public class PlayerMovement : MonoBehaviour
 
         if (slopeAngle != 0 && IsCharacterOnTheGround())
         {
-            if(_movementVector.x != 0f && slopeAngle != 0f && (_movementVector.x * slopeAngle > 0))
+            if(_inputMovementVector.x != 0f && slopeAngle != 0f && (_inputMovementVector.x * slopeAngle > 0))
             {
-                _movementVector.y = -Mathf.Abs(Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * _movementVector.x);
-                _movementVector.y *= downForceAdjustment;
+                _inputMovementVector.y = -Mathf.Abs(Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * _inputMovementVector.x);
+                _inputMovementVector.y *= downForceAdjustment;
             }
         }
     }
-    public void Move(Vector2 movement)
+    public void PhysicsMove(Vector2 movement)
     {
-        _externalMovementVector += movement;
+        _physicsMovementVector += movement;
+    }
+    public void ResetVerticalPhysicsMovement()
+    {
+        _physicsMovementVector.y = 0f;
     }
     private void AdjustPlayerDirection()
     {
-        if (_movementVector.x < 0)
+        if (PlayerInputHandler.Instance.GetMovementInput().x < 0)
         {
             transform.rotation = Quaternion.Euler(0f, 180f, 0f);
             _isPlayerFacingRight = false;
         }
-        else if (_movementVector.x > 0)
+        else if (PlayerInputHandler.Instance.GetMovementInput().x > 0)
         {
             transform.rotation = Quaternion.Euler(0f, 0f, 0f);
             _isPlayerFacingRight = true;
@@ -158,7 +156,15 @@ public class PlayerMovement : MonoBehaviour
 
         //Jump
         if (PlayerInputHandler.Instance.IsJumpButtonPressedThisFrame())
-            Jump();
+        {
+            if (_advancedCharacterCollision2D.groundType == GroundType.MovingPlatform)
+            {
+                Vector2 movingPlatformVelocity = _advancedCharacterCollision2D.GetGroundCollisionObject().GetComponent<MovingPlatform>().Velocity;
+                _inputMovementVector.y = jumpSpeed + movingPlatformVelocity.y;
+            }
+            else
+                Jump();
+        }
 
         //Crouch
         if (PlayerInputHandler.Instance.IsPlayerPressingDownMovementButton() && !isCrouching)
@@ -167,14 +173,14 @@ public class PlayerMovement : MonoBehaviour
             UnCrouch();
 
         //Crouch Walk
-        if (isCrouching && _movementVector.x != 0)
+        if (isCrouching && _inputMovementVector.x != 0)
             isCrouchWalking = true;
         else
             isCrouchWalking = false;
     }
     public void ResetVerticalMovement()
     {
-        _movementVector.y = 0f;
+        _inputMovementVector.y = 0f;
     }
     private void ResetJumpStates()
     {
@@ -186,7 +192,7 @@ public class PlayerMovement : MonoBehaviour
     }
     private void Jump()
     {
-        _movementVector.y = jumpSpeed;
+        _inputMovementVector.y = jumpSpeed;
         isJumping = true;
         _advancedCharacterCollision2D.DisableGroundCheck();
     }
@@ -221,11 +227,11 @@ public class PlayerMovement : MonoBehaviour
     }
     private void OnTheAir()
     {
-        if (isCrouching && _movementVector.y > 0)
+        if (isCrouching && _inputMovementVector.y > 0)
             StartCoroutine("ClearCrouchState");
 
-        if (PlayerInputHandler.Instance.JumpButtonReleased && _movementVector.y > 0)
-            _movementVector.y *= 0.5f;
+        if (PlayerInputHandler.Instance.JumpButtonReleased && _inputMovementVector.y > 0)
+            _inputMovementVector.y *= 0.5f;
 
         if (PlayerInputHandler.Instance.IsJumpButtonPressedThisFrame())
         {
@@ -255,13 +261,12 @@ public class PlayerMovement : MonoBehaviour
                 }
             }
         }
-
         //Wall Run
         if (canWallRun && HasSideCollisions())
         {
             if (PlayerInputHandler.Instance.GetMovementInput().y > 0 && isJumping)
             {
-                _movementVector.y = wallRunAmount;
+                _inputMovementVector.y = wallRunAmount;
 
                 if (_advancedCharacterCollision2D.left)
                     transform.rotation = Quaternion.Euler(0f, 180f, 0f);
@@ -279,14 +284,13 @@ public class PlayerMovement : MonoBehaviour
                 isWallRunning = false;
             }
         }
-
         //Wall Slide
         if (canWallSlide && HasSideCollisions())
         {
             if (_advancedCharacterCollision2D.hitWallThisFrame)
                 ResetVerticalMovement();
 
-            if (_movementVector.y <= 0)
+            if (_inputMovementVector.y <= 0)
                 isWallSliding = true;
         }
         else
@@ -296,25 +300,25 @@ public class PlayerMovement : MonoBehaviour
     }
     private void DoubleJump()
     {
-        _movementVector.y = doubleJumpSpeed;
+        _inputMovementVector.y = doubleJumpSpeed;
         isDoubleJumping = true;
     }
     private void TripleJump()
     {
-        _movementVector.y = tripleJumpSpeed;
+        _inputMovementVector.y = tripleJumpSpeed;
         isTripleJumping = true;
     }
     private void WallJump()
     {
-        if (_movementVector.x <= 0 && _advancedCharacterCollision2D.left)
+        if (_inputMovementVector.x <= 0 && _advancedCharacterCollision2D.left)
         {
-            _movementVector.x = wallJumpXSpeed;
-            _movementVector.y = wallJumpYSpeed;
+            _inputMovementVector.x = wallJumpXSpeed;
+            _inputMovementVector.y = wallJumpYSpeed;
         }
-        else if (_movementVector.x >= 0 && _advancedCharacterCollision2D.right)
+        else if (_inputMovementVector.x >= 0 && _advancedCharacterCollision2D.right)
         {
-            _movementVector.x = -wallJumpXSpeed;
-            _movementVector.y = wallJumpYSpeed;
+            _inputMovementVector.x = -wallJumpXSpeed;
+            _inputMovementVector.y = wallJumpYSpeed;
         }
 
     }
@@ -325,14 +329,14 @@ public class PlayerMovement : MonoBehaviour
     void AdjustGravity()
     {
         //If Something Above Player Resets Vertical Movement
-        if (_movementVector.y > 0f && _advancedCharacterCollision2D.above)
+        if (_inputMovementVector.y > 0f && _advancedCharacterCollision2D.above)
             ResetVerticalMovement();
 
         //Wall Slide Gravity Adjustment
         if (isWallSliding)
-            _movementVector.y -= (gravity * wallSlideAmount) * Time.deltaTime;
+            _inputMovementVector.y -= (gravity * wallSlideAmount) * Time.deltaTime;
         else if(!isWallSliding)
-            _movementVector.y -= gravity * Time.deltaTime;
+            _inputMovementVector.y -= gravity * Time.deltaTime;
     }
 
     #region Coroutines

@@ -2,47 +2,58 @@ using System.Collections;
 using UnityEngine;
 public class MovingPlatform : MonoBehaviour
 {
-    public Vector2 Velocity { get { return _movementVelocity; } }
+    public Vector2 Velocity { get { return _platformRigidbody2D.velocity; } }
 
     [Header("Movement Settings")]
     [SerializeField] private float movementSpeed = 5f;
+    [Space]
+    [Header("Waypoint Settings")]
     [SerializeField] private Transform[] waypoints;
-    [SerializeField] private bool drawLineToCurrentWaypoint;
-
-    //Movement & Velocity
-    private Vector2 _movementVelocity;
-    private Vector3 _lastPosition;
-    private bool _canIncrementWaypoint = true;
+    [SerializeField] private float waitTimeBeforeChangeWaypointInSeconds = 0.3f;
+    [Space]
+    [Header("Components")]
+    [SerializeField] private BoxCollider2D triggerCollider;
+    [Header("Test & Debug")]
+    [SerializeField] private bool drawLineToCurrentWaypoint = true;
 
     //Waypoint
     private Vector3 _currentWaypoint;
     private int _currentWaypointIndex;
+    private bool _canChangeCurrentWaypointIndex;
+    private bool _isWaiting = false;
+
+    //Components
+    private Rigidbody2D _platformRigidbody2D;
 
     private void Start()
     {
+        _platformRigidbody2D = GetComponent<Rigidbody2D>();
+
         _currentWaypointIndex = 0;
         _currentWaypoint = waypoints[_currentWaypointIndex].position;
-        _canIncrementWaypoint = true;
+        _canChangeCurrentWaypointIndex = true;
     }
     private void Update()
     {
-        UpdateLastPosition();
-
-        MoveTowardsCurrentWaypoint();
-
-        if (IsReachedTheWaypoint() && _canIncrementWaypoint)
-            SetNextWaypoint();
-
-        CalculateVelocity();
+        if (IsReachedTheWaypoint() && _canChangeCurrentWaypointIndex)
+        {
+            _canChangeCurrentWaypointIndex = false;
+            StartCoroutine(WaitBeforeNextWaypoint());
+        }
     }
-
-    private void UpdateLastPosition()
+    private void FixedUpdate()
     {
-        _lastPosition = transform.position;
+        MoveTowardsCurrentWaypoint();
+    }
+    private Vector2 GetDirectionVector()
+    {
+        if (_isWaiting)
+            return Vector2.zero;
+        return _currentWaypoint - transform.position;
     }
     private void MoveTowardsCurrentWaypoint()
     {
-        transform.position = Vector3.MoveTowards(transform.position, _currentWaypoint, movementSpeed * Time.deltaTime);
+        _platformRigidbody2D.velocity = GetDirectionVector().normalized * movementSpeed;
     }
     private bool IsReachedTheWaypoint()
     {
@@ -54,26 +65,22 @@ public class MovingPlatform : MonoBehaviour
 
         if (_currentWaypointIndex >= waypoints.Length)
             _currentWaypointIndex = 0;
-
-        StartCoroutine(LockWaypointIndex());
     }
     private void SetNextWaypoint()
     {
         IncrementWaypointIndex();
         _currentWaypoint = waypoints[_currentWaypointIndex].position;
-    }
-    private void CalculateVelocity()
-    {
-        _movementVelocity = transform.position - _lastPosition;
+        _canChangeCurrentWaypointIndex = true;
     }
     private void OnDrawGizmos()
     {
         Gizmos.DrawLine(transform.position, _currentWaypoint);
     }
-    private IEnumerator LockWaypointIndex()
+    private IEnumerator WaitBeforeNextWaypoint()
     {
-        _canIncrementWaypoint = false;
-        yield return new WaitForSeconds(0.2f);
-        _canIncrementWaypoint = true;
+        _isWaiting = true;
+        yield return new WaitForSeconds(waitTimeBeforeChangeWaypointInSeconds);
+        SetNextWaypoint();
+        _isWaiting = false;
     }
 }

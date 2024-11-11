@@ -1060,6 +1060,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4501779443993972811, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
+      propertyPath: triggerCollider
+      value: 
+      objectReference: {fileID: 894106580}
     - target: {fileID: 6417600767594403466, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1254,6 +1258,11 @@ Transform:
 Transform:
   m_CorrespondingSourceObject: {fileID: 4243619256130462367, guid: f279f0a7ed1e2994caaced02d884ea5d, type: 3}
   m_PrefabInstance: {fileID: 3486168870212023525}
+  m_PrefabAsset: {fileID: 0}
+--- !u!61 &894106580 stripped
+BoxCollider2D:
+  m_CorrespondingSourceObject: {fileID: 3769833256559850019, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
+  m_PrefabInstance: {fileID: 669113861}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &897578354
 GameObject:
@@ -1996,11 +2005,10 @@ GameObject:
   - component: {fileID: 1589431689}
   - component: {fileID: 1589431688}
   - component: {fileID: 1589431687}
-  - component: {fileID: 1589431692}
   - component: {fileID: 1589431686}
   - component: {fileID: 1589431693}
+  - component: {fileID: 1589431692}
   - component: {fileID: 1589431691}
-  - component: {fileID: 1589431695}
   - component: {fileID: 1589431694}
   m_Layer: 3
   m_Name: Player
@@ -2166,8 +2174,8 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0
-  m_GravityScale: 0
-  m_Material: {fileID: 6200000, guid: d2ea5377acce7de4293cf22cd4c3efa9, type: 2}
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -2321,8 +2329,8 @@ MonoBehaviour:
   isGliding: 0
   isCrouchWalking: 0
   isCrouching: 0
-  _movementVector: {x: 0, y: 0}
-  _externalMovementVector: {x: 0, y: 0}
+  _inputMovementVector: {x: 0, y: 0}
+  _physicsMovementVector: {x: 0, y: 0}
 --- !u!114 &1589431692
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2364,33 +2372,6 @@ MonoBehaviour:
   JumpButtonPressed: 0
   JumpButtonReleased: 0
 --- !u!114 &1589431694
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1589431685}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ca7c6b28217f2e443aaa3864c02cdc8b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  canGlide: 0
-  canGlideAfterWallContact: 0
-  glideTime: 2
-  glideDescentAmount: 1
-  canPowerJump: 0
-  powerJumpSpeed: 35
-  powerJumpWaitTime: 1.5
-  canGroundDash: 0
-  canAirDash: 0
-  dashSpeed: 40
-  dashTime: 0.1
-  dashCooldownTime: 5
-  canGroundSlam: 0
-  groundSlamSpeed: 60
-  _powerJumpTimer: 0
---- !u!114 &1589431695
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2991,6 +2972,10 @@ PrefabInstance:
     - target: {fileID: 4014611297379377205, guid: 9b6da0f366637e8468ef024e94efa65e, type: 3}
       propertyPath: m_Name
       value: OneWayPlatform
+      objectReference: {fileID: 0}
+    - target: {fileID: 4014611297379377205, guid: 9b6da0f366637e8468ef024e94efa65e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8156288847525562871, guid: 9b6da0f366637e8468ef024e94efa65e, type: 3}
       propertyPath: m_LocalPosition.x
