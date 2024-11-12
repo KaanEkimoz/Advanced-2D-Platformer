@@ -54,12 +54,7 @@ public class PlayerMovement : MonoBehaviour
 
     //Movement
     [HideInInspector] public Vector2 _inputMovementVector;
-    public Vector2 _physicsMovementVector;
-
-    private bool _isPlayerFacingRight = true;
-    private Vector2 _currentPosition;
-    private Vector2 _lastPosition;
-    Vector2 _moveAmount = Vector2.zero;
+    [HideInInspector]public Vector2 _otherMovementVector;
 
     //Components
     private AdvancedCharacterCollision2D _advancedCharacterCollision2D;
@@ -92,14 +87,9 @@ public class PlayerMovement : MonoBehaviour
             AdjustPlayerDirection();
         }
 
-        _moveAmount = _inputMovementVector;
-    }
+        transform.position += new Vector3(_inputMovementVector.x + _otherMovementVector.x, _inputMovementVector.y + _otherMovementVector.y, 0f) * Time.deltaTime;
 
-    private void FixedUpdate()
-    {
-        _rigidbody2D.velocity = _moveAmount + _physicsMovementVector;
-
-        _physicsMovementVector = Vector2.zero;
+        _otherMovementVector = Vector2.zero;
     }
     private void HandleHorizontalMovement()
     {
@@ -123,26 +113,20 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
-    public void PhysicsMove(Vector2 movement)
+    public void MoveThePlayer(Vector2 movement)
     {
-        _physicsMovementVector += movement;
+        _otherMovementVector += movement;
     }
     public void ResetVerticalPhysicsMovement()
     {
-        _physicsMovementVector.y = 0f;
+        _otherMovementVector.y = 0f;
     }
     private void AdjustPlayerDirection()
     {
         if (PlayerInputHandler.Instance.GetMovementInput().x < 0)
-        {
             transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-            _isPlayerFacingRight = false;
-        }
         else if (PlayerInputHandler.Instance.GetMovementInput().x > 0)
-        {
             transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-            _isPlayerFacingRight = true;
-        }
     }
     private bool IsCharacterOnTheGround()
     {
@@ -193,6 +177,7 @@ public class PlayerMovement : MonoBehaviour
     private void Jump()
     {
         _inputMovementVector.y = jumpSpeed;
+        _rigidbody2D.velocity = new Vector2(_rigidbody2D.velocity.x, jumpSpeed);
         isJumping = true;
         _advancedCharacterCollision2D.DisableGroundCheck();
     }

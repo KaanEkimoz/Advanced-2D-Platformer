@@ -1020,6 +1020,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: MovingPlatform (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 3840024119380034700, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4374082540300155756, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
+      propertyPath: m_Constraints
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4409206651592106524, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
       propertyPath: m_LocalPosition.x
       value: 20.3
@@ -1063,7 +1071,7 @@ PrefabInstance:
     - target: {fileID: 4501779443993972811, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
       propertyPath: triggerCollider
       value: 
-      objectReference: {fileID: 894106580}
+      objectReference: {fileID: 0}
     - target: {fileID: 6417600767594403466, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1258,11 +1266,6 @@ Transform:
 Transform:
   m_CorrespondingSourceObject: {fileID: 4243619256130462367, guid: f279f0a7ed1e2994caaced02d884ea5d, type: 3}
   m_PrefabInstance: {fileID: 3486168870212023525}
-  m_PrefabAsset: {fileID: 0}
---- !u!61 &894106580 stripped
-BoxCollider2D:
-  m_CorrespondingSourceObject: {fileID: 3769833256559850019, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
-  m_PrefabInstance: {fileID: 669113861}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &897578354
 GameObject:
@@ -2009,7 +2012,6 @@ GameObject:
   - component: {fileID: 1589431693}
   - component: {fileID: 1589431692}
   - component: {fileID: 1589431691}
-  - component: {fileID: 1589431694}
   m_Layer: 3
   m_Name: Player
   m_TagString: Player
@@ -2167,14 +2169,14 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1589431685}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
   m_LinearDrag: 0
   m_AngularDrag: 0
-  m_GravityScale: 1
+  m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -2330,7 +2332,7 @@ MonoBehaviour:
   isCrouchWalking: 0
   isCrouching: 0
   _inputMovementVector: {x: 0, y: 0}
-  _physicsMovementVector: {x: 0, y: 0}
+  _otherMovementVector: {x: 0, y: 0}
 --- !u!114 &1589431692
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2371,18 +2373,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   JumpButtonPressed: 0
   JumpButtonReleased: 0
---- !u!114 &1589431694
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1589431685}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fbb8974fe133fc5419c9564b5fd8ed88, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1603410028
 GameObject:
   m_ObjectHideFlags: 0
@@ -3116,6 +3106,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MovingPlatform
       objectReference: {fileID: 0}
+    - target: {fileID: 3840024119380034700, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4409206651592106524, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
       propertyPath: m_LocalPosition.x
       value: 41.45
@@ -3156,7 +3150,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3769833256559850019, guid: b2e13e55b538f7a4bbf3787af4eea943, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

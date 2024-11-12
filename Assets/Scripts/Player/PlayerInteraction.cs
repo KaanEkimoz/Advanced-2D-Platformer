@@ -6,10 +6,12 @@ public class PlayerInteraction : MonoBehaviour
     //Components
     private AdvancedCharacterCollision2D _characterCollision2D;
     private PlayerMovement _playerMovement;
+    private Transform originalParent;
     void Start()
     {
         _characterCollision2D = GetComponent<AdvancedCharacterCollision2D>();
         _playerMovement = GetComponent<PlayerMovement>();
+        originalParent = _playerMovement.gameObject.transform.parent;
     }
     void Update()
     {
@@ -30,16 +32,6 @@ public class PlayerInteraction : MonoBehaviour
         if (_characterCollision2D.groundType == GroundType.OneWayPlatform && PlayerInputHandler.Instance.IsPlayerPressingDownMovementButton())
             StartCoroutine(DisableOneWayPlatform(_characterCollision2D.GetGroundCollisionObject()));
     }
-    private void FixedUpdate()
-    {
-        if (_characterCollision2D.groundType == GroundType.MovingPlatform)
-        {
-            Vector2 _currentMovingPlatformVelocity = _characterCollision2D.GetGroundCollisionObject().GetComponent<MovingPlatform>().Velocity;
-            _playerMovement.PhysicsMove(_currentMovingPlatformVelocity);
-        }
-
-    }
-
     #region Coroutines
     IEnumerator DisableOneWayPlatform(GameObject currentOneWayPlatform)
     {

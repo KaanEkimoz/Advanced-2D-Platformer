@@ -74,18 +74,18 @@ public class PlayerAbilities : MonoBehaviour
             isGliding = false;
 
         if (isGroundSlamming)
-            _playerMovement.PhysicsMove(Vector2.down * groundSlamSpeed * Time.deltaTime);
+            _playerMovement.MoveThePlayer(Vector2.down * groundSlamSpeed * Time.deltaTime);
 
         if (isDashing)
-            _playerMovement.PhysicsMove(new Vector2(PlayerInputHandler.Instance.GetPlayerDirection() * dashSpeed * Time.deltaTime, 0));
+            _playerMovement.MoveThePlayer(new Vector2(PlayerInputHandler.Instance.GetPlayerDirection() * dashSpeed * Time.deltaTime, 0));
 
         if(isPowerJumping)
-            _playerMovement.PhysicsMove(Vector2.up * powerJumpSpeed * Time.deltaTime);
+            _playerMovement.MoveThePlayer(Vector2.up * powerJumpSpeed * Time.deltaTime);
 
         if (isGliding)
         {
             _playerMovement.ResetVerticalMovement();
-            _playerMovement.PhysicsMove(Vector2.down * glideDescentAmount * Time.deltaTime);
+            _playerMovement.MoveThePlayer(Vector2.down * glideDescentAmount * Time.deltaTime);
             _currentGlideTime -= Time.deltaTime;
         }
             

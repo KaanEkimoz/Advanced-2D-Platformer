@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 public class MovingPlatform : MonoBehaviour
 {
-    public Vector2 Velocity { get { return _platformRigidbody2D.velocity; } }
+    public Vector3 Velocity { get { return velocityVector; } }
 
     [Header("Movement Settings")]
     [SerializeField] private float movementSpeed = 5f;
@@ -16,19 +16,17 @@ public class MovingPlatform : MonoBehaviour
     [Header("Test & Debug")]
     [SerializeField] private bool drawLineToCurrentWaypoint = true;
 
+    //Velocity
+    private Vector3 velocityVector;
+
     //Waypoint
     private Vector3 _currentWaypoint;
     private int _currentWaypointIndex;
     private bool _canChangeCurrentWaypointIndex;
     private bool _isWaiting = false;
 
-    //Components
-    private Rigidbody2D _platformRigidbody2D;
-
     private void Start()
     {
-        _platformRigidbody2D = GetComponent<Rigidbody2D>();
-
         _currentWaypointIndex = 0;
         _currentWaypoint = waypoints[_currentWaypointIndex].position;
         _canChangeCurrentWaypointIndex = true;
@@ -40,20 +38,19 @@ public class MovingPlatform : MonoBehaviour
             _canChangeCurrentWaypointIndex = false;
             StartCoroutine(WaitBeforeNextWaypoint());
         }
-    }
-    private void FixedUpdate()
-    {
         MoveTowardsCurrentWaypoint();
     }
     private Vector2 GetDirectionVector()
     {
         if (_isWaiting)
             return Vector2.zero;
+
         return _currentWaypoint - transform.position;
     }
     private void MoveTowardsCurrentWaypoint()
     {
-        _platformRigidbody2D.velocity = GetDirectionVector().normalized * movementSpeed;
+        Vector3 velocityVector = new Vector3(GetDirectionVector().normalized.x, GetDirectionVector().normalized.y, 0f) * movementSpeed;
+        transform.position += velocityVector;
     }
     private bool IsReachedTheWaypoint()
     {
@@ -71,10 +68,6 @@ public class MovingPlatform : MonoBehaviour
         IncrementWaypointIndex();
         _currentWaypoint = waypoints[_currentWaypointIndex].position;
         _canChangeCurrentWaypointIndex = true;
-    }
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawLine(transform.position, _currentWaypoint);
     }
     private IEnumerator WaitBeforeNextWaypoint()
     {

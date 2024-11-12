@@ -64,22 +64,6 @@ public class AdvancedCharacterCollision2D : MonoBehaviour
         _inAirLastFrame = !below;
 
         _noSideCollisionLastFrame = (!right && !left);
-
-        /*_lastPosition = _rigidbody.position;
-        
-        if (_slopeAngle != 0 && below == true)
-        {
-            if((_moveAmount.x > 0f && _slopeAngle > 0f) || (_moveAmount.x < 0f && _slopeAngle < 0f))
-            {
-                _moveAmount.y = -Mathf.Abs(Mathf.Tan(_slopeAngle * Mathf.Deg2Rad) * _moveAmount.x);
-                _moveAmount.y *= downForceAdjustment;
-            }
-        }
-        _currentPosition = _lastPosition + _moveAmount;
-
-        _rigidbody.MovePosition(_currentPosition);
-
-        _moveAmount = Vector2.zero; */
         
         if (!_disableGroundCheck)
             CheckGrounded();
