@@ -2,28 +2,17 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 public class PlayerInputHandler : MonoBehaviour
 {
-    #region Singleton
     public static PlayerInputHandler Instance { get; private set; }
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // Optional: keeps the instance alive across scenes
-        }
+        Instance = this;
     }
-    #endregion
 
     //Movement
     private Vector2 _movementInputXY;
 
     //Jump
-    public bool JumpButtonPressed;
-    public bool JumpButtonReleased;
+    [HideInInspector]public bool IsPressingJumpButton;
     private bool _isJumpButtonPressedThisFrame;
 
     //Dash
@@ -82,7 +71,7 @@ public class PlayerInputHandler : MonoBehaviour
     }
 
     #region Input Functions
-        public void OnMovement(InputAction.CallbackContext context)
+    public void OnMovement(InputAction.CallbackContext context)
     {
         _movementInputXY = context.ReadValue<Vector2>();
     }
@@ -93,15 +82,9 @@ public class PlayerInputHandler : MonoBehaviour
             _isJumpButtonPressedThisFrame = true;
         }
         if (context.started)
-        {
-            JumpButtonPressed = true;
-            JumpButtonReleased = false;
-        }
+            IsPressingJumpButton = true;
         else if (context.canceled)
-        {
-            JumpButtonReleased = true;
-            JumpButtonPressed = false;
-        } 
+            IsPressingJumpButton = false;
     }
 
     public void OnDash(InputAction.CallbackContext context)

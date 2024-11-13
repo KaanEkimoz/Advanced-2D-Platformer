@@ -73,7 +73,7 @@ public class PlayerAbilities : MonoBehaviour
         else
             isGliding = false;
 
-        if (isGroundSlamming)
+       /* if (isGroundSlamming)
             _playerMovement.MoveThePlayer(Vector2.down * groundSlamSpeed * Time.deltaTime);
 
         if (isDashing)
@@ -88,7 +88,7 @@ public class PlayerAbilities : MonoBehaviour
             _playerMovement.MoveThePlayer(Vector2.down * glideDescentAmount * Time.deltaTime);
             _currentGlideTime -= Time.deltaTime;
         }
-            
+            */
         if (_characterCollision2D.IsGrounded())
         {
             isGroundSlamming = false;

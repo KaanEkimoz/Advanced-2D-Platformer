@@ -2010,7 +2010,6 @@ GameObject:
   - component: {fileID: 1589431687}
   - component: {fileID: 1589431686}
   - component: {fileID: 1589431693}
-  - component: {fileID: 1589431692}
   - component: {fileID: 1589431691}
   m_Layer: 3
   m_Name: Player
@@ -2169,7 +2168,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1589431685}
-  m_BodyType: 1
+  m_BodyType: 0
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -2322,9 +2321,9 @@ MonoBehaviour:
   canWallSlide: 0
   wallSlideAmount: 1
   gravity: 40
-  isJumping: 0
-  isDoubleJumping: 0
-  isTripleJumping: 0
+  _isJumping: 0
+  _isDoubleJumping: 0
+  _isTripleJumping: 0
   isWallJumping: 0
   isWallRunning: 0
   isWallSliding: 0
@@ -2333,32 +2332,11 @@ MonoBehaviour:
   isCrouching: 0
   _inputMovementVector: {x: 0, y: 0}
   _otherMovementVector: {x: 0, y: 0}
---- !u!114 &1589431692
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1589431685}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 092bbe5e2aeecc64da5a8ceb89d36650, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  raycastDistance: 0.2
-  layerMask:
-    serializedVersion: 2
-    m_Bits: 64
-  below: 0
-  left: 0
-  right: 0
-  above: 0
-  groundType: 0
-  ceilingType: 0
-  rightWallType: 0
-  leftWallType: 0
-  hitGroundThisFrame: 0
-  hitWallThisFrame: 0
+  _stats: {fileID: 11400000, guid: 75e4f26b7e58b894a903b3febe5e6c31, type: 2}
+  groundHit: 0
+  ceilingHit: 0
+  leftHit: 0
+  rightHit: 0
 --- !u!114 &1589431693
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2371,8 +2349,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcfe515491f745847a62bada034a798c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  JumpButtonPressed: 0
-  JumpButtonReleased: 0
+  IsPressingJumpButton: 0
 --- !u!1 &1603410028
 GameObject:
   m_ObjectHideFlags: 0
