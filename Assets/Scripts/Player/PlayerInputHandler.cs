@@ -12,7 +12,7 @@ public class PlayerInputHandler : MonoBehaviour
     private Vector2 _movementInputXY;
 
     //Jump
-    [HideInInspector]public bool IsPressingJumpButton;
+    [HideInInspector] public bool IsPressingJumpButton;
     private bool _isJumpButtonPressedThisFrame;
 
     //Dash

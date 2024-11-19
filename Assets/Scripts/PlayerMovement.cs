@@ -96,6 +96,10 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
         HandleJump();
         HandleHorizontalMovement();
         HandleDirection();
+        //HandleSlopeMovement();
+        HandleCrouch();
+
+
         HandleGravity();
 
         ApplyMovement();
@@ -144,16 +148,24 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
         RaycastHit2D groundHitRay = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.down, _stats.GrounderDistance, ~_stats.PlayerLayer);
 
         if (groundHitRay.collider)
-            groundHit = true;
+        {
+            _slopeAngle = Vector2.SignedAngle(groundHitRay.normal, Vector2.up);
+
+            if (_slopeAngle > _stats.SlopeAngleLimit || _slopeAngle < -_stats.SlopeAngleLimit)
+                groundHit = false;
+            else
+                groundHit = true;
+        }
+            
         else
             groundHit = false;
 
         //bool groundHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.down, _stats.GrounderDistance, ~_stats.PlayerLayer);
-        bool ceilingHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.up, _stats.GrounderDistance, ~_stats.PlayerLayer);
+        ceilingHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.up, _stats.GrounderDistance, ~_stats.PlayerLayer);
 
         // Left and Right
-        bool leftHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.left, _stats.GrounderDistance, ~_stats.PlayerLayer);
-        bool rightHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.right, _stats.GrounderDistance, ~_stats.PlayerLayer);
+        leftHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.left, _stats.GrounderDistance, ~_stats.PlayerLayer);
+        rightHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.right, _stats.GrounderDistance, ~_stats.PlayerLayer);
 
         
         // Hit a Ceiling
@@ -167,7 +179,7 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
             _slopeNormal = groundHitRay.normal;
             _slopeAngle = Vector2.SignedAngle(_slopeNormal, Vector2.up);
 
-            if (_slopeAngle > _stats.slopeAngleLimit || _slopeAngle < -_stats.slopeAngleLimit)
+            if (_slopeAngle > _stats.SlopeAngleLimit || _slopeAngle < -_stats.SlopeAngleLimit)
                 groundHit = false;
         }
         
@@ -193,17 +205,7 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     }
 
     #endregion
-
-    /*
-    private void HandleHorizontalMovement()
-    {
-        _inputMovementVector.x = PlayerInputHandler.Instance.GetMovementInput().normalized.x;
-
-        if (isCrouchWalking)
-            _inputMovementVector.x *= crouchWalkSpeed;
-        else
-            _inputMovementVector.x *= walkSpeed;
-    }*/
+    
     #region Jumping
 
     private bool _jumpToConsume;
@@ -217,9 +219,17 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
 
         else if (_jumpInputToApply && _isDoubleJumping && !_isTripleJumping) ExecuteTripleJump();
 
+        else if (_jumpInputToApply && (leftHit || rightHit)) ExecuteWallJump();
+
         _jumpInputToApply = false;
     }
-
+    private void HandleCrouch()
+    {
+        if (_frameInput.Move.y < 0 && groundHit && !isCrouching)
+            Crouch();
+        else if (_frameInput.Move.y >= 0 && !ceilingHit && isCrouching)
+            UnCrouch();
+    }
     private void ExecuteJump()
     {
         _isJumping = true;
@@ -232,18 +242,32 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     {
         _isDoubleJumping = true;
         _frameVelocity.y = _stats.DoubleJumpPower;
-        Debug.Log("Double Jumped");
     }
     private void ExecuteTripleJump()
     {
         _isTripleJumping = true;
         _frameVelocity.y = _stats.TripleJumpPower;
-        Debug.Log("Triple Jumped");
+    }
+    private void ExecuteWallJump()
+    {
+        _isJumping = true;
+        _timeJumpWasPressed = 0;
+        _frameVelocity.x = _stats.WallJumpHorizontalPower;
+        _frameVelocity.y = _stats.WallJumpVerticalPower;
+
+        if (_stats.AutoRotateAfterWallJump)
+            HandleDirection();
+
+        if (_stats.ResetMultipleJumpsAfterWallJump)
+        {
+            _isDoubleJumping = false;
+            _isTripleJumping = false;
+        }
     }
 
     #endregion
 
-    #region Horizontal
+    #region Horizontal Movement
 
     private void HandleHorizontalMovement()
     {
@@ -252,10 +276,12 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
             var deceleration = _grounded ? _stats.GroundDeceleration : _stats.AirDeceleration;
             _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, 0, deceleration * Time.fixedDeltaTime);
         }
-        else
+        else if(isCrouching)
         {
-            _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, _frameInput.Move.x * _stats.MaxSpeed, _stats.Acceleration * Time.fixedDeltaTime);
+            _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, _frameInput.Move.x * _stats.CrouchSpeed, _stats.Acceleration * Time.fixedDeltaTime);
         }
+        else
+            _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, _frameInput.Move.x * _stats.MaxSpeed, _stats.Acceleration * Time.fixedDeltaTime);
     }
 
     #endregion
@@ -285,20 +311,18 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     }
 
 #endif
-    /*
+    
     private void HandleSlopeMovement()
     {
-        float slopeAngle = _advancedCharacterCollision2D.GetSlopeAngle();
+        if (_slopeAngle == 0 || !groundHit)
+            return;
 
-        if (slopeAngle != 0 && IsCharacterOnTheGround())
+        if (_frameVelocity.x != 0f && (_frameVelocity.x * _slopeAngle > 0))
         {
-            if (_inputMovementVector.x != 0f && slopeAngle != 0f && (_inputMovementVector.x * slopeAngle > 0))
-            {
-                _inputMovementVector.y = -Mathf.Abs(Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * _inputMovementVector.x);
-                _inputMovementVector.y *= downForceAdjustment;
-            }
+            _frameVelocity.y = -Mathf.Abs(Mathf.Tan(_slopeAngle * Mathf.Deg2Rad) * _frameVelocity.x);
+            _frameVelocity.y *= downForceAdjustment;
         }
-    }*/
+    }
     private void HandleDirection()
     {
         if (_frameInput.Move.x < 0)
@@ -306,20 +330,12 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
         else if (_frameInput.Move.x > 0)
             transform.rotation = Quaternion.Euler(0f, 0f, 0f);
     }
-    /*
-    private bool IsCharacterOnTheGround()
-    {
-        return _advancedCharacterCollision2D.IsGrounded();
-    }*/
     private void OnTheGround()
     {
         ResetVerticalMovement();
 
         ResetJumpStates();
 
-        //Jump
-        if (PlayerInputHandler.Instance.IsJumpButtonPressedThisFrame())
-            Jump();
 
         //Crouch
         if (PlayerInputHandler.Instance.IsPlayerPressingDownMovementButton() && !isCrouching)
@@ -345,13 +361,6 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
         _isTripleJumping = false;
         isWallJumping = false;
     }
-    private void Jump()
-    {
-        _inputMovementVector.y = jumpSpeed;
-        _rb.velocity = new Vector2(_rb.velocity.x, jumpSpeed);
-        //isJumping = true;
-        //_advancedCharacterCollision2D.DisableGroundCheck();
-    }
     private void Crouch()
     {
        // if (_advancedCharacterCollision2D.groundType == GroundType.OneWayPlatform)
@@ -363,14 +372,9 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
 
         isCrouching = true;
     }
-    /*
     private bool HasUnCrouchSpace()
     {
-        RaycastHit2D hitCeiling = Physics2D.CapsuleCast(_col.bounds.center,
-                    transform.localScale, CapsuleDirection2D.Vertical, 0f, Vector2.up,
-                    _originalColliderSize.y / 2, _advancedCharacterCollision2D.layerMask);
-
-        return !hitCeiling.collider;
+        return !ceilingHit;
     }
     private void UnCrouch()
     {
@@ -382,6 +386,13 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
         isCrouching = false;
         isCrouchWalking = false;
     }
+    #region Wall Movement
+
+    private void HandleWallMovement()
+    {
+    }
+    
+    /*
     private void OnTheAir()
     {
         if (isCrouching && _inputMovementVector.y > 0)
@@ -530,3 +541,4 @@ public interface IPlayerController
     public event Action Jumped;
     public Vector2 FrameInput { get; }
 }
+#endregion

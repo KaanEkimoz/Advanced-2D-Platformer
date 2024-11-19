@@ -13,12 +13,13 @@ MonoBehaviour:
   m_Name: PlayerStats
   m_EditorClassIdentifier: 
   MaxSpeed: 14
+  CrouchSpeed: 7
   Acceleration: 240
   GroundDeceleration: 60
   AirDeceleration: 0
   GroundedForce: -1.5
   GrounderDistance: 0.05
-  slopeAngleLimit: 45
+  SlopeAngleLimit: 45
   JumpPower: 72
   DoubleJumpPower: 60
   TripleJumpPower: 50

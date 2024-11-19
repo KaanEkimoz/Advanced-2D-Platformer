@@ -7,6 +7,9 @@ public class PlayerStats : ScriptableObject
     [Tooltip("The top horizontal movement speed")]
     public float MaxSpeed = 14;
 
+    [Tooltip("The top horizontal movement speed")]
+    public float CrouchSpeed = 7;
+
     [Tooltip("The player's capacity to gain horizontal speed")]
     public float Acceleration = 120;
 
@@ -23,7 +26,7 @@ public class PlayerStats : ScriptableObject
     public float GrounderDistance = 0.05f;
 
     [Tooltip("The maximum angle the player can move up. 0 is flat, 90 is vertical")]
-    public float slopeAngleLimit = 45f;
+    public float SlopeAngleLimit = 45f;
 
     [Header("JUMP")]
     [Tooltip("The immediate velocity applied when jumping")]
@@ -34,6 +37,18 @@ public class PlayerStats : ScriptableObject
 
     [Tooltip("The immediate velocity applied when triple jumping")]
     public float TripleJumpPower = 20;
+
+    [Tooltip("The immediate horizontal velocity applied when power jumping")]
+    public float WallJumpHorizontalPower = 25;
+
+    [Tooltip("The immediate vertical velocity applied when power jumping")]
+    public float WallJumpVerticalPower = 25;
+
+    [Tooltip("Rotates the player after executed wall jump")]
+    public bool AutoRotateAfterWallJump = true;
+
+    [Tooltip("Resets double and triple jumps after wall jump")]
+    public bool ResetMultipleJumpsAfterWallJump = true;
 
     [Tooltip("The maximum vertical movement speed")]
     public float MaxFallSpeed = 40;
