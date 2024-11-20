@@ -23,6 +23,10 @@ MonoBehaviour:
   JumpPower: 72
   DoubleJumpPower: 60
   TripleJumpPower: 50
+  WallJumpHorizontalPower: 25
+  WallJumpVerticalPower: 72
+  AutoRotateAfterWallJump: 1
+  ResetMultipleJumpsAfterWallJump: 1
   MaxFallSpeed: 40
   FallAcceleration: 110
   JumpEndEarlyGravityModifier: 3

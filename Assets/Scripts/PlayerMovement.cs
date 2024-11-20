@@ -59,6 +59,8 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     [HideInInspector] public Vector2 _inputMovementVector;
     [HideInInspector]public Vector2 _otherMovementVector;
 
+    private bool _isFacingRight = true;
+
     //Components
     private SpriteRenderer _spriteRenderer;
     private Rigidbody2D _rb;
@@ -215,11 +217,13 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     {
         if (_jumpInputToApply && _grounded) ExecuteJump();
 
+        else if (_jumpInputToApply && (leftHit || rightHit)) ExecuteWallJump();
+
         else if (_jumpInputToApply && _isJumping && !_isDoubleJumping) ExecuteDoubleJump();
 
         else if (_jumpInputToApply && _isDoubleJumping && !_isTripleJumping) ExecuteTripleJump();
 
-        else if (_jumpInputToApply && (leftHit || rightHit)) ExecuteWallJump();
+        
 
         _jumpInputToApply = false;
     }
@@ -227,7 +231,7 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     {
         if (_frameInput.Move.y < 0 && groundHit && !isCrouching)
             Crouch();
-        else if (_frameInput.Move.y >= 0 && !ceilingHit && isCrouching)
+        else if ((_frameInput.Move.y >= 0 || !groundHit) && !ceilingHit && isCrouching)
             UnCrouch();
     }
     private void ExecuteJump()
@@ -250,13 +254,17 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     }
     private void ExecuteWallJump()
     {
+        Debug.Log("Wall Jumped !!");
         _isJumping = true;
         _timeJumpWasPressed = 0;
-        _frameVelocity.x = _stats.WallJumpHorizontalPower;
-        _frameVelocity.y = _stats.WallJumpVerticalPower;
 
         if (_stats.AutoRotateAfterWallJump)
-            HandleDirection();
+            FlipDirection();
+
+        int direction = _isFacingRight ? 1 : -1;
+
+        _frameVelocity.x = _stats.WallJumpHorizontalPower * direction;
+        _frameVelocity.y = _stats.WallJumpVerticalPower;
 
         if (_stats.ResetMultipleJumpsAfterWallJump)
         {
@@ -323,12 +331,34 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
             _frameVelocity.y *= downForceAdjustment;
         }
     }
+
+    private void FlipDirection()
+    {
+        Debug.Log("Flipped  !!");
+        if(transform.rotation == Quaternion.Euler(0f, 180f, 0f))
+        {
+            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+            _isFacingRight = true;
+        }
+        else
+        {
+            transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            _isFacingRight = false;
+        }
+    }
     private void HandleDirection()
     {
         if (_frameInput.Move.x < 0)
+        {
             transform.rotation = Quaternion.Euler(0f, 180f, 0f);
+            _isFacingRight = false;
+        }
         else if (_frameInput.Move.x > 0)
+        {
             transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+            _isFacingRight = true;
+        }
+            
     }
     private void OnTheGround()
     {
@@ -391,7 +421,13 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     private void HandleWallMovement()
     {
     }
-    
+    IEnumerator WallJumpWaiter()
+    {
+        isWallJumping = true;
+        yield return new WaitForSeconds(0.4f);
+        isWallJumping = false;
+    }
+
     /*
     private void OnTheAir()
     {
@@ -508,12 +544,7 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     }
 
     #region Coroutines
-    IEnumerator WallJumpWaiter()
-    {
-        isWallJumping = true;
-        yield return new WaitForSeconds(0.4f);
-        isWallJumping = false;
-    }
+    
     IEnumerator WallRunWaiter()
     {
         isWallRunning = true;
@@ -528,6 +559,8 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     }
     #endregion*/
 }
+
+
 public struct FrameInput
 {
     public bool JumpDown;
