@@ -44,6 +44,9 @@ public class PlayerStats : ScriptableObject
     [Tooltip("The immediate vertical velocity applied when power jumping")]
     public float WallJumpVerticalPower = 25;
 
+    [Tooltip("The immediate vertical velocity applied when power jumping")] [Range(0, 1)]
+    public float WallSlideAmount = 0.3f;
+
     [Tooltip("Rotates the player after executed wall jump")]
     public bool AutoRotateAfterWallJump = true;
 

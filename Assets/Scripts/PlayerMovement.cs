@@ -303,7 +303,13 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
         else
         {
             var inAirGravity = _stats.FallAcceleration;
-            if ( _frameVelocity.y > 0) inAirGravity *= _stats.JumpEndEarlyGravityModifier;
+
+            if((leftHit || rightHit) && _frameVelocity.y <= 0 && !_grounded) // Wall Slide
+                inAirGravity *= _stats.WallSlideAmount;
+
+            if ( _frameVelocity.y > 0) 
+                inAirGravity *= _stats.JumpEndEarlyGravityModifier;
+
             _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.MaxFallSpeed, inAirGravity * Time.fixedDeltaTime);
         }
     }
@@ -420,12 +426,6 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
 
     private void HandleWallMovement()
     {
-    }
-    IEnumerator WallJumpWaiter()
-    {
-        isWallJumping = true;
-        yield return new WaitForSeconds(0.4f);
-        isWallJumping = false;
     }
 
     /*
