@@ -2,28 +2,31 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 public class PlayerInputHandler : MonoBehaviour
 {
+    #region Singleton
     public static PlayerInputHandler Instance { get; private set; }
     private void Awake()
     {
         Instance = this;
     }
+    #endregion
+
+    public bool JumpButtonPressed { get { return IsJumpButtonPressedThisFrame(); } }
+    public bool JumpButtonHeld { get { return _jumpButtonHeld; } }
 
     //Movement
-    private Vector2 _movementInputXY;
+    private Vector2 _moveInput;
 
     //Jump
-    [HideInInspector] public bool IsPressingJumpButton;
-    private bool _isJumpButtonPressedThisFrame;
+    private bool _jumpButtonHeld;
+    private bool _jumpButtonPressedThisFrame;
 
     //Dash
-    private bool DashButtonPressed;
     private bool _isDashButtonPressedThisFrame;
 
     //Attack
-    private bool AttackButtonPressed;
     private bool _isAttackButtonPressedThisFrame;
 
-    public bool IsDashButtonPressedThisFrame()
+    private bool IsDashButtonPressedThisFrame()
     {
         if (_isDashButtonPressedThisFrame)
         {
@@ -32,24 +35,23 @@ public class PlayerInputHandler : MonoBehaviour
         }
         return false;
     }
-
-    public bool IsJumpButtonPressedThisFrame()
+    private bool IsJumpButtonPressedThisFrame()
     {
-        if (_isJumpButtonPressedThisFrame)
+        if (_jumpButtonPressedThisFrame)
         {
-            _isJumpButtonPressedThisFrame = false;
+            _jumpButtonPressedThisFrame = false;
             return true;
         }
         return false;
     }
-    public bool IsPlayerPressingDownMovementButton()
+    private bool IsPlayerPressingDownMovementButton()
     {
         if(GetMovementInput().y < 0)
             return true;
 
         return false;
     }
-    public bool IsAttackButtonPressedThisFrame()
+    private bool IsAttackButtonPressedThisFrame()
     {
         if (_isAttackButtonPressedThisFrame)
         {
@@ -60,7 +62,7 @@ public class PlayerInputHandler : MonoBehaviour
     }
     public Vector2 GetMovementInput()
     {
-        return _movementInputXY;
+        return _moveInput;
     }
     public int GetPlayerDirection()
     {
@@ -70,38 +72,31 @@ public class PlayerInputHandler : MonoBehaviour
         return -1; //left
     }
 
-    #region Input Functions
+    #region Input Event Functions
     public void OnMovement(InputAction.CallbackContext context)
     {
-        _movementInputXY = context.ReadValue<Vector2>();
+        _moveInput = context.ReadValue<Vector2>();
     }
     public void OnJump(InputAction.CallbackContext context)
     {
-        if (context.phase == InputActionPhase.Started)
-        {
-            _isJumpButtonPressedThisFrame = true;
-        }
         if (context.started)
-            IsPressingJumpButton = true;
-        else if (context.canceled)
-            IsPressingJumpButton = false;
+        {
+            _jumpButtonPressedThisFrame = true;
+            _jumpButtonHeld = true;
+        }
+        else if(context.canceled)
+            _jumpButtonHeld = false;
     }
 
     public void OnDash(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Started)
             _isDashButtonPressedThisFrame = true;
-
-        if (context.started)
-            DashButtonPressed = true;
     }
     public void OnAttack(InputAction.CallbackContext context)
     {
         if (context.phase == InputActionPhase.Started)
             _isAttackButtonPressedThisFrame = true;
-
-        if (context.started)
-            AttackButtonPressed = true;
     }
     #endregion
 }

@@ -1,88 +1,39 @@
 using System;
-using System.Collections;
 using UnityEngine;
 using GlobalTypes;
-using Unity.VisualScripting;
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
 public class PlayerMovement : MonoBehaviour, IPlayerController
 {
-    [Header("Walk and Crouch Walk")]
-    [SerializeField] private float walkSpeed = 10f;
-    [SerializeField] private float crouchWalkSpeed = 5f;
-    [Space]
-    [Header("Slope Walk")]
-    [SerializeField] private float downForceAdjustment = 1.2f;
-    [Header("Jump")]
-    [SerializeField] private bool canJump = true;
-    [SerializeField] private float jumpSpeed = 15f;
-    [Space]
-    [Header("Double Jump")]
-    [SerializeField] private bool canDoubleJump = true;
-    [SerializeField] private float doubleJumpSpeed = 10f;
-    [Space]
-    [Header("Triple Jump")]
-    [SerializeField] private bool canTripleJump = false;
-    [SerializeField] private float tripleJumpSpeed = 10f;
-    [Space]
-    [Header("Wall Jump")]
-    [SerializeField] private bool canWallJump = false;
-    [SerializeField] private bool canJumpAfterWallJump = false;
-    [SerializeField] private bool autoRotatePlayerAfterWallJump = true;
-    [SerializeField] private float wallJumpXSpeed = 15f;
-    [SerializeField] private float wallJumpYSpeed = 15f;
-    [Space]
-    [Header("Wall Run")]
-    [SerializeField] private bool canWallRun = false;
-    [SerializeField] private bool canMultipleWallRun = false;
-    [SerializeField] private float wallRunAmount = 8f;
-    [Space]
-    [Header("Wall Slide")]
-    [SerializeField] private bool canWallSlide = false;
-    [SerializeField] [Range(0f, 1f)] [Tooltip("Factor to multiply gravity with")] 
-    private float wallSlideAmount = 0.1f;
-    [Space]
-    [Header("Gravity")]
-    [SerializeField] private float gravity = 20f;
-    [Space]
-    [Header("Player State")]
-    [SerializeField] public bool _isJumping;
-    [SerializeField] private bool _isDoubleJumping;
-    [SerializeField] private bool _isTripleJumping;    
-    [SerializeField] private bool isWallJumping;
-    [SerializeField] private bool isWallRunning;
-    [SerializeField] private bool isWallSliding;
-    [SerializeField] private bool isGliding;
-    [SerializeField] private bool isCrouchWalking;
-    [SerializeField] private bool isCrouching;
+    [Header("PLAYER STATS")]
+    [SerializeField] private PlayerStats _stats;
+
+    //Flags
+    private bool _isJumping;
+    private bool _isDoubleJumping;
+    private bool _isTripleJumping;
+    private bool isWallRunning;
+    private bool isWallSliding;
+    private bool isGliding;
+    private bool isCrouchWalking;
+    private bool isCrouching;
 
     //Movement
-    [HideInInspector] public Vector2 _inputMovementVector;
-    [HideInInspector]public Vector2 _otherMovementVector;
-
     private bool _isFacingRight = true;
+    private Vector2 _frameVelocity;
 
     //Components
     private SpriteRenderer _spriteRenderer;
-    private Rigidbody2D _rb;
+    private Rigidbody2D _rigidbody2D;
     private Vector2 _originalColliderSize;
-
-    [SerializeField] private PlayerStats _stats;
-    
     private CapsuleCollider2D _col;
-    private FrameInput _frameInput;
-    private Vector2 _frameVelocity;
 
-    public Vector2 FrameInput => _frameInput.Move;
+    //Events
     public event Action<bool, float> GroundedChanged;
     public event Action Jumped;
-
-    private bool _jumpInputToApply;
-    private float _time;
 
     private void Awake()
     {
         _col = GetComponent<CapsuleCollider2D>();
-        _rb = GetComponent<Rigidbody2D>();
+        _rigidbody2D = GetComponent<Rigidbody2D>();
         _spriteRenderer = GetComponent<SpriteRenderer>();
         _originalColliderSize = _col.size;
     }
@@ -98,22 +49,25 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
         HandleJump();
         HandleHorizontalMovement();
         HandleDirection();
-        //HandleSlopeMovement();
         HandleWallMovement();
         HandleCrouch();
-
 
         HandleGravity();
 
         ApplyMovement();
     }
+    private void ApplyMovement() => _rigidbody2D.velocity = _frameVelocity;
 
+    #region Input
+    public Vector2 FrameInput => _frameInput.Move;
+    private FrameInput _frameInput;
+    private float _time;
     private void GatherInput()
     {
         _frameInput = new FrameInput
         {
-            JumpDown = PlayerInputHandler.Instance.IsJumpButtonPressedThisFrame(),
-            JumpHeld = PlayerInputHandler.Instance.IsPressingJumpButton,
+            JumpDown = PlayerInputHandler.Instance.JumpButtonPressed,
+            JumpHeld = PlayerInputHandler.Instance.JumpButtonHeld,
             Move = PlayerInputHandler.Instance.GetMovementInput()
         };
         if (_stats.SnapInput)
@@ -127,6 +81,7 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
             _timeJumpWasPressed = _time;
         }
     }
+    #endregion
 
     #region Collisions
 
@@ -134,6 +89,9 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     public bool ceilingHit;
     public bool leftHit;
     public bool rightHit;
+
+    private GroundType _groundType;
+    private GroundType _ceilingType;
 
     private float _frameLeftGrounded = float.MinValue;
     private bool _grounded;
@@ -155,13 +113,14 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
             if (_slopeAngle > _stats.SlopeAngleLimit || _slopeAngle < -_stats.SlopeAngleLimit)
                 groundHit = false;
             else
+            {
+                _groundType = DetectGroundType(groundHitRay.collider);
                 groundHit = true;
-        }
-            
+            } 
+        } 
         else
             groundHit = false;
 
-        //bool groundHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.down, _stats.GrounderDistance, ~_stats.PlayerLayer);
         ceilingHit = Physics2D.CapsuleCast(_col.bounds.center, _col.size, _col.direction, 0, Vector2.up, _stats.GrounderDistance, ~_stats.PlayerLayer);
 
         // Left and Right
@@ -171,18 +130,6 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
         
         // Hit a Ceiling
         if (ceilingHit) _frameVelocity.y = Mathf.Min(0, _frameVelocity.y);
-
-        if (groundHit)
-        {
-            //groundType = DetectGroundType(hit.collider);
-            //_groundCollisionObject = hit.collider.gameObject;
-
-            _slopeNormal = groundHitRay.normal;
-            _slopeAngle = Vector2.SignedAngle(_slopeNormal, Vector2.up);
-
-            if (_slopeAngle > _stats.SlopeAngleLimit || _slopeAngle < -_stats.SlopeAngleLimit)
-                groundHit = false;
-        }
         
         // Landed on the Ground
         if (!_grounded && groundHit)
@@ -202,14 +149,24 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
             //GroundedChanged?.Invoke(false, 0);
         }
 
-        Debug.Log("Grounded: " + _grounded);
+
+    }
+    private GroundType DetectGroundType(Collider2D collider)
+    {
+        if (collider.GetComponent<GroundEffector>())
+        {
+            GroundEffector groundEffector = collider.GetComponent<GroundEffector>();
+            return groundEffector.groundType;
+        }
+        else
+            return GroundType.DefaultPlatform;
     }
 
     #endregion
-    
-    #region Jumping
 
-    private bool _jumpToConsume;
+    #region Jump
+
+    private bool _jumpInputToApply;
     private float _timeJumpWasPressed;
 
     private void HandleJump()
@@ -278,70 +235,49 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
     {
         if (_frameInput.Move.x == 0)
         {
-            var deceleration = _grounded ? _stats.GroundDeceleration : _stats.AirDeceleration;
+            var deceleration = _grounded ? _stats.GroundHorizontalDeceleration : _stats.AirHorizontalDeceleration;
             _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, 0, deceleration * Time.fixedDeltaTime);
         }
         else if(isCrouching)
         {
-            _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, _frameInput.Move.x * _stats.CrouchSpeed, _stats.Acceleration * Time.fixedDeltaTime);
+            _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, _frameInput.Move.x * _stats.MaxCrouchSpeed, _stats.HorizontalAcceleration * Time.fixedDeltaTime);
         }
         else
-            _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, _frameInput.Move.x * _stats.MaxSpeed, _stats.Acceleration * Time.fixedDeltaTime);
+            _frameVelocity.x = Mathf.MoveTowards(_frameVelocity.x, _frameInput.Move.x * _stats.MaxHorizontalSpeed, _stats.HorizontalAcceleration * Time.fixedDeltaTime);
+
     }
-
-    #endregion
-
-    #region Gravity
-
-    private void HandleGravity()
+    private void Crouch()
     {
-        if (isWallRunning)
+        if (_groundType == GroundType.OneWayPlatform)
             return;
 
-        if (_grounded && _frameVelocity.y <= 0f)
-            _frameVelocity.y = _stats.GroundedForce;
-        else
-        {
-            var inAirGravity = _stats.FallAcceleration;
+        _col.size = new Vector2(_col.size.x, _col.size.y / 2);
+        transform.position = new Vector2(transform.position.x, transform.position.y - (_originalColliderSize.y / 4));
+        _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp_crouching");
 
-            if((leftHit || rightHit) && _frameVelocity.y <= 0 && !_grounded) // Wall Slide
-                inAirGravity *= _stats.WallSlideAmount;
-
-            if ( _frameVelocity.y > 0) 
-                inAirGravity *= _stats.JumpEndEarlyGravityModifier;
-
-            _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.MaxFallSpeed, inAirGravity * Time.fixedDeltaTime);
-        }
+        isCrouching = true;
     }
-
-    #endregion
-
-    private void ApplyMovement() => _rb.velocity = _frameVelocity;
-
-#if UNITY_EDITOR
-    private void OnValidate()
+    private bool HasUnCrouchSpace()
     {
-        if (_stats == null) Debug.LogWarning("Please assign a ScriptableStats asset to the Player Controller's Stats slot", this);
+        return !ceilingHit;
     }
-
-#endif
-    
-    private void HandleSlopeMovement()
+    private void UnCrouch()
     {
-        if (_slopeAngle == 0 || !groundHit)
+        if (!HasUnCrouchSpace())
             return;
 
-        if (_frameVelocity.x != 0f && (_frameVelocity.x * _slopeAngle > 0))
-        {
-            _frameVelocity.y = -Mathf.Abs(Mathf.Tan(_slopeAngle * Mathf.Deg2Rad) * _frameVelocity.x);
-            _frameVelocity.y *= downForceAdjustment;
-        }
-    }
+        _col.size = _originalColliderSize;
 
+        transform.position = new Vector2(transform.position.x, transform.position.y + (_originalColliderSize.y / 4));
+        _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
+
+        isCrouching = false;
+        isCrouchWalking = false;
+    }
     private void FlipDirection()
     {
         Debug.Log("Flipped  !!");
-        if(transform.rotation == Quaternion.Euler(0f, 180f, 0f))
+        if (transform.rotation == Quaternion.Euler(0f, 180f, 0f))
         {
             transform.rotation = Quaternion.Euler(0f, 0f, 0f);
             _isFacingRight = true;
@@ -364,77 +300,67 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
             transform.rotation = Quaternion.Euler(0f, 0f, 0f);
             _isFacingRight = true;
         }
-            
+
     }
-    private void OnTheGround()
+
+    #endregion
+
+    #region Gravity
+
+    private void HandleGravity()
     {
-        ResetVerticalMovement();
+        if (isWallRunning)
+            return;
 
-        ResetJumpStates();
+        if (_grounded && _frameVelocity.y <= 0f)
+        {
+            _frameVelocity.y = _stats.GroundedForce;
 
+            if (_frameVelocity.x != 0f && (_frameVelocity.x * _slopeAngle > 0))
+                _frameVelocity.y = -Mathf.Abs(Mathf.Tan(_slopeAngle * Mathf.Deg2Rad) * _frameVelocity.x);
 
-        //Crouch
-        if (PlayerInputHandler.Instance.IsPlayerPressingDownMovementButton() && !isCrouching)
-            Crouch();
-        //else if (PlayerInputHandler.Instance.GetMovementInput().y >= 0 && isCrouching && HasUnCrouchSpace())
-            //UnCrouch();
-
-        //Crouch Walk
-        if (isCrouching && _inputMovementVector.x != 0)
-            isCrouchWalking = true;
+        }
         else
-            isCrouchWalking = false;
-    }
-    public void ResetVerticalMovement()
-    {
-        _inputMovementVector.y = 0f;
-    }
-    private void ResetJumpStates()
-    {
-        //Jumps
-        //isJumping = false;
-        _isDoubleJumping = false;
-        _isTripleJumping = false;
-        isWallJumping = false;
-    }
-    private void Crouch()
-    {
-       // if (_advancedCharacterCollision2D.groundType == GroundType.OneWayPlatform)
-         //   return;
+        {
+            var inAirGravity = _stats.FallAcceleration;
 
-        _col.size = new Vector2(_col.size.x, _col.size.y / 2);
-        transform.position = new Vector2(transform.position.x, transform.position.y - (_originalColliderSize.y / 4));
-        _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp_crouching");
+            if((leftHit || rightHit) && _frameVelocity.y <= 0 && !_grounded) // Wall Slide
+                inAirGravity *= _stats.WallSlideAmount;
 
-        isCrouching = true;
-    }
-    private bool HasUnCrouchSpace()
-    {
-        return !ceilingHit;
-    }
-    private void UnCrouch()
-    {
-        _col.size = _originalColliderSize;
+            if ( _frameVelocity.y > 0) 
+                inAirGravity *= _stats.JumpEndEarlyGravityModifier;
 
-        transform.position = new Vector2(transform.position.x, transform.position.y + (_originalColliderSize.y / 4));
-        _spriteRenderer.sprite = Resources.Load<Sprite>("directionSpriteUp");
-
-        isCrouching = false;
-        isCrouchWalking = false;
+            _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, -_stats.MaxFallSpeed, inAirGravity * Time.fixedDeltaTime);
+        }
     }
+
+    #endregion
+
     #region Wall Movement
-
     private void HandleWallMovement()
     {
         if ((leftHit || rightHit) && _frameInput.Move.y > 0)
         {
-            _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, _frameInput.Move.y * _stats.WallRunSpeed, _stats.Acceleration * Time.fixedDeltaTime);
+            _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, _frameInput.Move.y * _stats.WallRunSpeed, _stats.HorizontalAcceleration * Time.fixedDeltaTime);
             isWallRunning = true;
         }
-        else if (!groundHit || (!leftHit && !rightHit) )
+        else if (_frameInput.Move.y <= 0 || groundHit || (!leftHit && !rightHit) )
             isWallRunning = false;
     }
+    #endregion
+
+    #region Unity Editor Methos
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (_stats == null) Debug.LogWarning("Please assign a ScriptableStats asset to the Player Controller's Stats slot", this);
+    }
+#endif
+    #endregion
+
 }
+
+#region Helpers
 public struct FrameInput
 {
     public bool JumpDown;
@@ -449,3 +375,4 @@ public interface IPlayerController
     public Vector2 FrameInput { get; }
 }
 #endregion
+

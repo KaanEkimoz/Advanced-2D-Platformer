@@ -4,8 +4,7 @@ using UnityEngine;
 public class PlayerAbilities : MonoBehaviour
 {
     [Header("Glide")]
-    [SerializeField] private bool canGlide;
-    [SerializeField] private bool canGlideAfterWallContact;
+    [SerializeField] private bool canGlide;    [SerializeField] private bool canGlideAfterWallContact;
     [SerializeField] private float glideTime = 2f;
     [SerializeField] private float glideDescentAmount = 2f;
     [Space]
@@ -58,20 +57,20 @@ public class PlayerAbilities : MonoBehaviour
 
         RunPowerJumpTimer();
         
-        if(canPowerJump  && _playerMovement._inputMovementVector.y > 0 && _characterCollision2D.groundType != GroundType.OneWayPlatform && 
-            (_powerJumpTimer > powerJumpWaitTime))
-            StartCoroutine(nameof(PowerJumpWaiter));
+        //if(canPowerJump  && _playerMovement._inputMovementVector.y > 0 && _characterCollision2D.groundType != GroundType.OneWayPlatform && 
+          //  (_powerJumpTimer > powerJumpWaitTime))
+            //StartCoroutine(nameof(PowerJumpWaiter));
 
-        if(PlayerInputHandler.Instance.IsAttackButtonPressedThisFrame() && !isPowerJumping && _playerMovement._inputMovementVector.y <= 0f )
-            isGroundSlamming = true;
+        //if(PlayerInputHandler.Instance.IsAttackButtonPressedThisFrame() && !isPowerJumping && _playerMovement._inputMovementVector.y <= 0f )
+          //  isGroundSlamming = true;
 
-        if (PlayerInputHandler.Instance.IsDashButtonPressedThisFrame())
-            StartCoroutine(nameof(StartDashing));
+        //if (PlayerInputHandler.Instance.IsDashButtonPressedThisFrame())
+          //  StartCoroutine(nameof(StartDashing));
 
-        if(canGlide && PlayerInputHandler.Instance.GetMovementInput().y > 0 && _playerMovement._inputMovementVector.y < 0.2f && _currentGlideTime > 0f)
-            isGliding = true;
-        else
-            isGliding = false;
+        //if(canGlide && PlayerInputHandler.Instance.GetMovementInput().y > 0 && _playerMovement._inputMovementVector.y < 0.2f && _currentGlideTime > 0f)
+          //  isGliding = true;
+        //else
+          //  isGliding = false;
 
        /* if (isGroundSlamming)
             _playerMovement.MoveThePlayer(Vector2.down * groundSlamSpeed * Time.deltaTime);

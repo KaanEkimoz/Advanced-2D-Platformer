@@ -25,12 +25,12 @@ public class PlayerInteraction : MonoBehaviour
             //_playerMovement.isJumping = true;
         }*/
 
-        if (_characterCollision2D.ceilingType == GroundType.OneWayPlatform && _playerMovement._inputMovementVector.y > 0f)
-            StartCoroutine(DisableOneWayPlatform(_characterCollision2D.GetCeilingCollisionObject()));
+       // if (_characterCollision2D.ceilingType == GroundType.OneWayPlatform && _playerMovement._inputMovementVector.y > 0f)
+         //   StartCoroutine(DisableOneWayPlatform(_characterCollision2D.GetCeilingCollisionObject()));
 
 
-        if (_characterCollision2D.groundType == GroundType.OneWayPlatform && PlayerInputHandler.Instance.IsPlayerPressingDownMovementButton())
-            StartCoroutine(DisableOneWayPlatform(_characterCollision2D.GetGroundCollisionObject()));
+       // if (_characterCollision2D.groundType == GroundType.OneWayPlatform && PlayerInputHandler.Instance.IsPlayerPressingDownMovementButton())
+         //   StartCoroutine(DisableOneWayPlatform(_characterCollision2D.GetGroundCollisionObject()));
     }
     #region Coroutines
     IEnumerator DisableOneWayPlatform(GameObject currentOneWayPlatform)

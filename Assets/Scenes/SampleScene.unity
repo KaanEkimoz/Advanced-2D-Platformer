@@ -2564,37 +2564,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0bc23e1894599c642bcd03af450f560c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  walkSpeed: 20
-  crouchWalkSpeed: 5
-  downForceAdjustment: 1.2
-  canJump: 1
-  jumpSpeed: 25
-  canDoubleJump: 1
-  doubleJumpSpeed: 20
-  canTripleJump: 1
-  tripleJumpSpeed: 15
-  canWallJump: 1
-  canJumpAfterWallJump: 0
-  autoRotatePlayerAfterWallJump: 1
-  wallJumpXSpeed: 20
-  wallJumpYSpeed: 20
-  canWallRun: 0
-  canMultipleWallRun: 0
-  wallRunAmount: 12
-  canWallSlide: 0
-  wallSlideAmount: 1
-  gravity: 40
-  _isJumping: 0
-  _isDoubleJumping: 0
-  _isTripleJumping: 0
-  isWallJumping: 0
-  isWallRunning: 0
-  isWallSliding: 0
-  isGliding: 0
-  isCrouchWalking: 0
-  isCrouching: 0
-  _inputMovementVector: {x: 0, y: 0}
-  _otherMovementVector: {x: 0, y: 0}
   _stats: {fileID: 11400000, guid: 75e4f26b7e58b894a903b3febe5e6c31, type: 2}
   groundHit: 0
   ceilingHit: 0
@@ -2612,7 +2581,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fcfe515491f745847a62bada034a798c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  IsPressingJumpButton: 0
 --- !u!1 &1603410028
 GameObject:
   m_ObjectHideFlags: 0

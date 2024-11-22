@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4b35334d2929d342a64d04a4e49730c, type: 3}
   m_Name: PlayerStats
   m_EditorClassIdentifier: 
-  MaxSpeed: 14
-  CrouchSpeed: 7
-  Acceleration: 240
-  GroundDeceleration: 60
-  AirDeceleration: 0
+  MaxHorizontalSpeed: 14
+  HorizontalAcceleration: 120
+  GroundHorizontalDeceleration: 60
+  AirHorizontalDeceleration: 30
+  MaxCrouchSpeed: 7
   GroundedForce: -1.5
   GrounderDistance: 0.05
   SlopeAngleLimit: 45
@@ -25,18 +25,17 @@ MonoBehaviour:
   TripleJumpPower: 50
   WallJumpHorizontalPower: 40
   WallJumpVerticalPower: 70
-  WallSlideAmount: 0.2
   AutoRotateAfterWallJump: 1
   ResetMultipleJumpsAfterWallJump: 1
+  WallSlideAmount: 0.2
+  WallRunSpeed: 14
   MaxFallSpeed: 40
   FallAcceleration: 110
   JumpEndEarlyGravityModifier: 3
-  CoyoteTime: 0.15
-  JumpBuffer: 0.2
   SnapInput: 1
   VerticalDeadZoneThreshold: 0.3
   HorizontalDeadZoneThreshold: 0.1
-  CanDoubleJump: 1
+  CanDoubleJump: 0
   CanTripleJump: 0
   CanPowerJump: 0
   PlayerLayer:
