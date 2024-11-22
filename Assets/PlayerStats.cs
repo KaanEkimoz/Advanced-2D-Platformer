@@ -7,7 +7,7 @@ public class PlayerStats : ScriptableObject
     [Tooltip("The top horizontal movement speed")]
     public float MaxSpeed = 14;
 
-    [Tooltip("The top horizontal movement speed")]
+    [Tooltip("The crouch movement speed")]
     public float CrouchSpeed = 7;
 
     [Tooltip("The player's capacity to gain horizontal speed")]
@@ -46,6 +46,9 @@ public class PlayerStats : ScriptableObject
 
     [Tooltip("The immediate vertical velocity applied when power jumping")] [Range(0, 1)]
     public float WallSlideAmount = 0.3f;
+
+    [Tooltip("The wall run speed")] //change
+    public float WallRunSpeed = 14;
 
     [Tooltip("Rotates the player after executed wall jump")]
     public bool AutoRotateAfterWallJump = true;

@@ -99,6 +99,7 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
         HandleHorizontalMovement();
         HandleDirection();
         //HandleSlopeMovement();
+        HandleWallMovement();
         HandleCrouch();
 
 
@@ -115,13 +116,11 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
             JumpHeld = PlayerInputHandler.Instance.IsPressingJumpButton,
             Move = PlayerInputHandler.Instance.GetMovementInput()
         };
-
         if (_stats.SnapInput)
         {
             _frameInput.Move.x = Mathf.Abs(_frameInput.Move.x) < _stats.HorizontalDeadZoneThreshold ? 0 : Mathf.Sign(_frameInput.Move.x);
             _frameInput.Move.y = Mathf.Abs(_frameInput.Move.y) < _stats.VerticalDeadZoneThreshold ? 0 : Mathf.Sign(_frameInput.Move.y);
         }
-
         if (_frameInput.JumpDown)
         {
             _jumpInputToApply = true;
@@ -223,8 +222,6 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
 
         else if (_jumpInputToApply && _isDoubleJumping && !_isTripleJumping) ExecuteTripleJump();
 
-        
-
         _jumpInputToApply = false;
     }
     private void HandleCrouch()
@@ -298,6 +295,9 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
 
     private void HandleGravity()
     {
+        if (isWallRunning)
+            return;
+
         if (_grounded && _frameVelocity.y <= 0f)
             _frameVelocity.y = _stats.GroundedForce;
         else
@@ -426,141 +426,15 @@ public class PlayerMovement : MonoBehaviour, IPlayerController
 
     private void HandleWallMovement()
     {
-    }
-
-    /*
-    private void OnTheAir()
-    {
-        if (isCrouching && _inputMovementVector.y > 0)
-            StartCoroutine("ClearCrouchState");
-
-        //if (PlayerInputHandler.Instance.JumpButtonReleased && _inputMovementVector.y > 0)
-          //  _inputMovementVector.y *= 0.5f;
-
-        if (PlayerInputHandler.Instance.IsJumpButtonPressedThisFrame())
+        if ((leftHit || rightHit) && _frameInput.Move.y > 0)
         {
-            //Triple Jump
-            if (canTripleJump && !HasSideCollisions())
-                if (_isDoubleJumping && !_isTripleJumping)
-                    TripleJump();
-            //Double Jump
-            if (canDoubleJump && !HasSideCollisions())
-                if (!_isDoubleJumping)
-                    DoubleJump();
-
-            //Wall Jump
-            if (canWallJump && HasSideCollisions())
-            {
-                WallJump();
-
-                if (autoRotatePlayerAfterWallJump)
-                    HandleDirection();
-
-                StartCoroutine("WallJumpWaiter");
-
-                if (canJumpAfterWallJump)
-                {
-                    _isDoubleJumping = false;
-                    _isTripleJumping = false;
-                }
-            }
+            _frameVelocity.y = Mathf.MoveTowards(_frameVelocity.y, _frameInput.Move.y * _stats.WallRunSpeed, _stats.Acceleration * Time.fixedDeltaTime);
+            isWallRunning = true;
         }
-        //Wall Run
-        if (canWallRun && HasSideCollisions())
-        {
-            if (PlayerInputHandler.Instance.GetMovementInput().y > 0 && _isJumping)
-            {
-                _inputMovementVector.y = wallRunAmount;
-
-                if (_advancedCharacterCollision2D.left)
-                    transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-                else if (_advancedCharacterCollision2D.right)
-                    transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-
-                StartCoroutine("WallRunWaiter");
-            }
-        }
-        else
-        {
-            if (canMultipleWallRun)
-            {
-                StopCoroutine("WallRunWaiter");
-                isWallRunning = false;
-            }
-        }
-        //Wall Slide
-        if (canWallSlide && HasSideCollisions())
-        {
-            if (_advancedCharacterCollision2D.hitWallThisFrame)
-                ResetVerticalMovement();
-
-            if (_inputMovementVector.y <= 0)
-                isWallSliding = true;
-        }
-        else
-            isWallSliding = false;
-
-        AdjustGravity();
+        else if (!groundHit || (!leftHit && !rightHit) )
+            isWallRunning = false;
     }
-    private void DoubleJump()
-    {
-        _inputMovementVector.y = doubleJumpSpeed;
-        _isDoubleJumping = true;
-    }
-    private void TripleJump()
-    {
-        _inputMovementVector.y = tripleJumpSpeed;
-        _isTripleJumping = true;
-    }
-    private void WallJump()
-    {
-        if (_inputMovementVector.x <= 0 && _advancedCharacterCollision2D.left)
-        {
-            _inputMovementVector.x = wallJumpXSpeed;
-            _inputMovementVector.y = wallJumpYSpeed;
-        }
-        else if (_inputMovementVector.x >= 0 && _advancedCharacterCollision2D.right)
-        {
-            _inputMovementVector.x = -wallJumpXSpeed;
-            _inputMovementVector.y = wallJumpYSpeed;
-        }
-
-    }
-    private bool HasSideCollisions()
-    {
-        return _advancedCharacterCollision2D.right || _advancedCharacterCollision2D.left;
-    }
-    void AdjustGravity()
-    {
-        //If Something Above Player Resets Vertical Movement
-        if (_inputMovementVector.y > 0f && _advancedCharacterCollision2D.above)
-            ResetVerticalMovement();
-
-        //Wall Slide Gravity Adjustment
-        if (isWallSliding)
-            _inputMovementVector.y -= (gravity * wallSlideAmount) * Time.deltaTime;
-        else if (!isWallSliding)
-            _inputMovementVector.y -= gravity * Time.deltaTime;
-    }
-
-    #region Coroutines
-    
-    IEnumerator WallRunWaiter()
-    {
-        isWallRunning = true;
-        yield return new WaitForSeconds(0.5f);
-        isWallRunning = false;
-    }
-    IEnumerator ClearCrouchState()
-    {
-        yield return new WaitForSeconds(0.05f);
-        if (HasUnCrouchSpace())
-            UnCrouch();
-    }
-    #endregion*/
 }
-
-
 public struct FrameInput
 {
     public bool JumpDown;
